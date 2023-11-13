@@ -321,14 +321,14 @@ class SqlService:
             'exec_src': 'print("Hello World")'
         }
         """
-        comment_id = raw_submission['id']
+        submission_id = raw_submission['id']
         created_at = raw_submission['created_at']
         challenge_id = raw_submission['challenge_id']
         account_id = raw_submission['account_id']
         exec_time = raw_submission['exec_time']
         exec_chars = raw_submission['exec_chars']
         exec_src = raw_submission['exec_src']
-        submission = ChallengeSubmission(comment_id, created_at, challenge_id, account_id, exec_time, exec_chars, exec_src)
+        submission = ChallengeSubmission(submission_id, created_at, challenge_id, account_id, exec_time, exec_chars, exec_src)
         return submission
 
     @staticmethod
@@ -600,6 +600,25 @@ class SqlService:
             comment = SqlService.raw_comment_to_comment(raw_comment)
             comments.append(comment)
         return comments
+    
+    @staticmethod
+    def get_challenge_submission_by_id(submission_id):
+        """
+        Retrieves a specific submission for a challenge.
+
+        This method calls the 'GetChallengeSubmissionById' stored procedure,
+        passing the submission ID to fetch the specified submission.
+        It then converts each raw submission data into a structured submission object.
+
+        Args:
+            challesubmission_idnge_id (int): The ID of the submission that is sought.
+
+        Returns:
+            A submission objects corresponding to the specified submission_id.
+        """
+        raw_submission = SqlService.call_stored_procedure("GetChallengeSubmissionById", params=(submission_id, ), fetchone=True)
+        submission = SqlService.raw_submission_to_submission(raw_submission)
+        return submission
 
     @staticmethod
     def get_challenge_submissions_by_id_and_account_id(challenge_id, account_id):
@@ -783,4 +802,14 @@ class SqlService:
         - challenge_comment_id (id): The id of the challenge comment to be wiped.
         """
         return SqlService.call_stored_procedure("PurgeChallengeCommentById", params=(challenge_comment_id,), delete=True)
+    
+    @staticmethod
+    def purge_challenge_submission_by_id(challenge_submission_id):
+        """
+        Wipes a challenge submission record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - challenge_submission_id (id): The id of the challenge submission to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeChallengeSubmissionById", params=(challenge_submission_id,), delete=True)
 

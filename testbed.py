@@ -277,6 +277,32 @@ class TestMyClass(unittest.TestCase):
         self.assertEqual(challenge_comment.title, title)
         self.assertEqual(challenge_comment.text, text)
 
+    def test_insert_challenge_comment_fail_missing_account_id(self):
+        # Define test data
+        account_id = None
+        challenge_id = 1
+        title = "Test Comment Title"
+        text = "This is a test comment."
+
+        # Call the method
+        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(comment_id)
+
+    def test_insert_challenge_comment_fail_missing_challenge_id(self):
+        # Define test data
+        account_id = 1
+        challenge_id = None
+        title = "Test Comment Title"
+        text = "This is a test comment."
+
+        # Call the method
+        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(comment_id)
+
     def test_insert_challenge_comment_fail_missing_title(self):
         # Define test data
         account_id = 1
@@ -302,6 +328,10 @@ class TestMyClass(unittest.TestCase):
 
         # Assert that an ID was returned (indicating successful insertion)
         self.assertIsNone(comment_id)
+
+    
+
+    
 
     
     
