@@ -601,7 +601,7 @@ class SqlService:
         Returns:
         - The result of the stored procedure execution which may contain information about the success or failure of the update operation.
         """
-        pass
+        return SqlService.call_stored_procedure("UpdateChallengeNameById", params=(id, name), update=True)
 
     @staticmethod
     def update_challenge_difficulty_by_id(id, difficulty):
@@ -617,6 +617,7 @@ class SqlService:
         Returns:
         - The outcome of the stored procedure, indicating the update status.
         """
+        return SqlService.call_stored_procedure("UpdateChallengeDifficultyById", params=(id, difficulty), update=True)
 
     @staticmethod
     def update_challenge_description_by_id(id, description):
@@ -633,7 +634,7 @@ class SqlService:
         Returns:
         - The result of the stored procedure execution, typically a confirmation of the update.
         """
-        pass
+        return SqlService.call_stored_procedure("UpdateChallengeDescriptionById", params=(id, description), update=True)
 
     @staticmethod
     def update_challenge_stub_name_by_id(id, name):
@@ -647,7 +648,7 @@ class SqlService:
         Returns:
         - The result of the stored procedure execution, which is an indicator of success or failure.
         """
-        pass
+        return SqlService.call_stored_procedure("UpdateChallengeStubNameById", params=(id, name), update=True)
 
     @staticmethod
     def update_challenge_stub_block_by_id(id, stub_block):
@@ -661,7 +662,7 @@ class SqlService:
         Returns:
         - A confirmation of the update from the stored procedure's result.
         """
-        pass
+        return SqlService.call_stored_procedure("UpdateChallengeStubBlockById", params=(id, stub_block), update=True)
 
     @staticmethod
     def delete_challenge_by_id(id):
