@@ -466,7 +466,9 @@ class SqlService:
         Returns:
             A challenge object corresponding to the specified ID or None if not found.
         """
-        pass
+        raw_challenge = SqlService.call_stored_procedure("GetChallengeById", params=(id, ), fetchone=True)
+        challenge = SqlService.raw_challenge_to_challenge(raw_challenge)
+        return challenge
 
     @staticmethod
     # unlimited version
