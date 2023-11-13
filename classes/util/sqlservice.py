@@ -494,6 +494,26 @@ class SqlService:
         raw_challenge = SqlService.call_stored_procedure("GetChallengeById", params=(id, ), fetchone=True)
         challenge = SqlService.raw_challenge_to_challenge(raw_challenge)
         return challenge
+    
+    @staticmethod
+    # get a specific challenge test
+    def get_challenge_test_by_id(challenge_test_id):
+        """
+        Retrieves a specific test case for a given challenge test ID.
+
+        Calls the 'GetChallengeTestById' stored procedure with the challenge test ID to fetch
+        the associated test case. The test case data is transformed into a structured
+        test object.
+
+        Args:
+            challenge_test_id (int): The unique identifier for the challenge test whose test cases is to be retrieved.
+
+        Returns:
+            A test object for the specified challenge.
+        """
+        raw_test = SqlService.call_stored_procedure("GetChallengeTestById", params=(challenge_test_id, ), fetchone=True)
+        test = SqlService.raw_test_to_test(raw_test)
+        return test
 
     @staticmethod
     # unlimited version
@@ -719,10 +739,20 @@ class SqlService:
     @staticmethod
     def purge_challenge_by_id(challenge_id):
         """
-        Wipes an account record from the database - used for unit test cleanup purposes.
+        Wipes a challenge record from the database - used for unit test cleanup purposes.
 
         Parameters:
-        - username (str): The username of the account to be wiped.
+        - challenge_id (id): The id of the challenge to be wiped.
         """
         return SqlService.call_stored_procedure("PurgeChallengeById", params=(challenge_id,), delete=True)
+    
+    @staticmethod
+    def purge_challenge_test_by_id(challenge_test_id):
+        """
+        Wipes a challenge test record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - challenge_test_id (id): The id of the challenge test to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeChallengeTestById", params=(challenge_test_id,), delete=True)
 

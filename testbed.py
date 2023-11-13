@@ -74,9 +74,10 @@ class TestMyClass(unittest.TestCase):
 
         # Assert that an ID was returned (indicating successful insertion)
         self.assertIsNotNone(challenge_id)
-
+        
         # Optionally: Verify the inserted data in the database
         challenge = SqlService.get_challenge_by_id(challenge_id)
+        SqlService.purge_challenge_by_id(challenge_id)  # purge this record
         self.assertEqual(challenge.name, name)
         self.assertEqual(challenge.difficulty, difficulty)
         self.assertEqual(challenge.description, description)
@@ -84,7 +85,7 @@ class TestMyClass(unittest.TestCase):
         self.assertEqual(challenge.stub_block, stub_block)
         self.assertEqual(challenge.time_allowed_sec, time_allowed_sec)
 
-        SqlService.purge_challenge_by_id(challenge_id)  # purge this record
+        
 
     def test_insert_challenge_fail_missing_account_id(self):
         # Define test data
@@ -213,6 +214,51 @@ class TestMyClass(unittest.TestCase):
 
         # Assert that None was returned (indicating failed insertion)
         self.assertIsNone(challenge_id)
+
+    def test_insert_challenge_test_success(self):
+        # Define test data
+        challenge_id = 1  # Assuming this challenge ID exists in your test database
+        input_data = "9, 10"
+        output_data = "19"
+
+        # Call the method
+        challenge_test_id = SqlService.insert_challenge_test(challenge_id, input_data, output_data)[0]['LAST_INSERT_ID()']
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNotNone(challenge_test_id)
+
+        # Optionally: Verify the inserted data in the database
+        challenge_test = SqlService.get_challenge_test_by_id(challenge_test_id)
+        SqlService.purge_challenge_test_by_id(challenge_id)  # purge this record
+        self.assertEqual(challenge_test.test_input, input_data)
+        self.assertEqual(challenge_test.test_output, output_data)
+
+    def test_insert_challenge_test_fail_missing_input(self):
+        # Define test data
+        challenge_id = 1  # Assuming this challenge ID exists in your test database
+        input_data = None
+        output_data = "19"
+
+        # Call the method
+        challenge_test_id = SqlService.insert_challenge_test(challenge_id, input_data, output_data)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(challenge_test_id)
+
+    def test_insert_challenge_test_fail_missing_output(self):
+        # Define test data
+        challenge_id = 1  # Assuming this challenge ID exists in your test database
+        input_data = "9, 10"
+        output_data = None
+
+        # Call the method
+        challenge_test_id = SqlService.insert_challenge_test(challenge_id, input_data, output_data)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(challenge_test_id)
+
+
+        
 
     
 
