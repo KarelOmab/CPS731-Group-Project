@@ -138,7 +138,7 @@ class SqlService:
                     results.extend(result.fetchall())
                 return results
         except mysql.connector.Error as err:
-            print(f"Error: {err}")
+            #print(f"Error: {err}")
             connection.rollback()
             return None
         finally:
@@ -715,4 +715,14 @@ class SqlService:
         - username (str): The username of the account to be wiped.
         """
         return SqlService.call_stored_procedure("PurgeAccountByUsername", params=(username,), delete=True)
+    
+    @staticmethod
+    def purge_challenge_by_id(challenge_id):
+        """
+        Wipes an account record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - username (str): The username of the account to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeChallengeById", params=(challenge_id,), delete=True)
 
