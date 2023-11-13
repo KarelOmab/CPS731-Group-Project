@@ -4,6 +4,7 @@ import mysql.connector
 from classes.account.user import User
 from classes.account.moderator import Moderator
 from classes.challenge.challenge import Challenge
+from classes.challenge.challengetest import ChallengeTest
 
 # Load environment variables from .env file
 load_dotenv()
@@ -250,7 +251,13 @@ class SqlService:
             'output': 'Expected output'
         }
         """
-        pass
+        test_id = raw_test['id']
+        challenge_id = raw_test['challenge_id']
+        is_deleted = raw_test['is_deleted']
+        test_input = raw_test['input']
+        test_output = raw_test['output']
+        test = ChallengeTest(test_id, challenge_id, is_deleted, test_input, test_output)
+        return test
     
     @staticmethod
     def raw_comment_to_comment(raw_comment):
@@ -486,7 +493,12 @@ class SqlService:
         Returns:
             A list of test objects for the specified challenge.
         """
-        pass
+        raw_tests = SqlService.call_stored_procedure("GetChallengeTestsById", params=(id, ))
+        tests = []
+        for raw_test in raw_tests:
+            test = SqlService.raw_test_to_test(raw_test)
+            tests.append(test)
+        return tests
 
     @staticmethod
     def get_challenge_tests_by_id_and_limit(id):
