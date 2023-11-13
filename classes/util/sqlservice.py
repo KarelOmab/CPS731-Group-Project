@@ -3,6 +3,7 @@ import os
 import mysql.connector
 from classes.account.user import User
 from classes.account.moderator import Moderator
+from classes.challenge.challenge import Challenge
 
 # Load environment variables from .env file
 load_dotenv()
@@ -214,7 +215,18 @@ class SqlService:
             'time_allowed_sec': 60
         }
         """
-        pass
+        challenge_id = raw_challenge['id']
+        created_at = raw_challenge['created_at']
+        account_id = raw_challenge['account_id']
+        is_deleted = raw_challenge['is_deleted']
+        name = raw_challenge['name']
+        difficulty = raw_challenge['difficulty']
+        description = raw_challenge['description']
+        stub_name = raw_challenge['stub_name']
+        stub_block = raw_challenge['stub_block']
+        time_allowed_sec = raw_challenge['time_allowed_sec']
+        challenge = Challenge(challenge_id, created_at, account_id, is_deleted, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
+        return challenge
     
     @staticmethod
     def raw_test_to_test(raw_test):
@@ -431,7 +443,12 @@ class SqlService:
         Returns:
             A list of challenge objects representing all challenges in the database.
         """
-        pass
+        raw_challenges = SqlService.call_stored_procedure("GetAllChallenges")
+        challenges = []
+        for raw_challenge in raw_challenges:
+            challenge = SqlService.raw_challenge_to_challenge(raw_challenge)
+            challenges.append(challenge)
+        return challenges
 
 
     @staticmethod
