@@ -295,7 +295,7 @@ class SqlService:
             The result of the stored procedure execution, the ID of the
             account if successful.
         """
-        pass
+        return SqlService.call_stored_procedure("InsertAccount", params=(usergroup, username, password, email))
 
     @staticmethod
     def insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec):
@@ -319,7 +319,7 @@ class SqlService:
             The result of the stored procedure execution, the ID of the
             inserted challenge if successful.
         """
-        pass
+        return SqlService.call_stored_procedure("InsertChallenge", params=(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec))
 
     @staticmethod
     def insert_challenge_test(challenge_id, input_data, output_data):
@@ -338,7 +338,7 @@ class SqlService:
             The result of the stored procedure execution, the ID of the
             inserted challenge test if successful.
         """
-        pass
+        return SqlService.call_stored_procedure("InsertChallengeTest", params=(challenge_id, input_data, output_data))
 
     @staticmethod
     def insert_challenge_comment(account_id, challenge_id, title, text):
@@ -358,7 +358,7 @@ class SqlService:
             The result of the stored procedure execution, the ID of the
             inserted challenge comment if successful.
         """
-        pass
+        return SqlService.call_stored_procedure("InsertChallengeComment", params=(account_id, challenge_id, title, text))
 
     @staticmethod
     def insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src):
@@ -380,7 +380,7 @@ class SqlService:
             The result of the stored procedure execution, the ID of the submission
             if successful.
         """
-        pass
+        return SqlService.call_stored_procedure("InsertChallengeSubmission", params=(challenge_id, account_id, exec_time, exec_chars, exec_src))
 
     @staticmethod
     def get_account_by_username_password(username, password):
