@@ -677,7 +677,7 @@ class SqlService:
         Returns:
         - An indicator from the database operation about the success or failure of the deletion.
         """
-        pass
+        return SqlService.call_stored_procedure("DeleteChallengeById", params=(id, ), delete=True)
 
     @staticmethod
     def delete_challenge_test_by_id_and_challenge_id(challenge_test_id, challenge_id):
@@ -691,7 +691,7 @@ class SqlService:
         Returns:
         - An outcome from the database procedure that may confirm deletion or report an error.
         """
-        pass
+        return SqlService.call_stored_procedure("DeleteChallengeTestByIdAndChallengeId", params=(challenge_test_id, challenge_id), delete=True)
 
     @staticmethod
     def delete_challenge_comment_by_id_and_challenge_id(comment_id, challenge_id):
@@ -705,5 +705,5 @@ class SqlService:
         Returns:
         - The result of the stored procedure which may be a success or error message.
         """
-        pass
+        return SqlService.call_stored_procedure("DeleteChallengeCommentByIdAndChallengeId", params=(comment_id, challenge_id), delete=True)
 
