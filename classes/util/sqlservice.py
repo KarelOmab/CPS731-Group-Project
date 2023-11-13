@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+import mysql.connector
 
 # Load environment variables from .env file
 load_dotenv()
@@ -23,7 +24,13 @@ class SqlService:
         Returns:
             mysql.connector.connection.MySQLConnection: An instance of the connection object to the database.
         """
-        pass
+        config = {
+            "host": SqlService.HOST,
+            "user": SqlService.USER,
+            "password": SqlService.PASSWORD,
+            "database": SqlService.DATABASE
+        }
+        return mysql.connector.connect(**config)
 
     @staticmethod
     def execute_query(query, params=None):
@@ -42,7 +49,18 @@ class SqlService:
             list of dict or None: A list of dictionaries representing the fetched rows if the query
                                 is successful, or None if there is an error.
         """
-        pass
+        connection = SqlService.create_connection()
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute(query, params)
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return None
+        finally:
+            cursor.close()
+            connection.close()
 
     @staticmethod
     def execute_query_and_get_last_id(query, params):
@@ -60,7 +78,19 @@ class SqlService:
         Returns:
             int or None: The ID of the last row inserted by the query if successful, or None if there is an error.
         """
-        pass
+        connection = SqlService.create_connection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute(query, params)
+            connection.commit()
+            return cursor.lastrowid
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            connection.rollback()
+            return None
+        finally:
+            cursor.close()
+            connection.close()
 
     @staticmethod
     def call_stored_procedure(proc_name, params=(), fetchone=False, update=False, delete=False):
@@ -86,7 +116,28 @@ class SqlService:
                                     - True if an 'update' or 'delete' was performed.
                                     - None if there is an error.
         """
-        pass
+        connection = SqlService.create_connection()
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.callproc(proc_name, params)
+            connection.commit()
+            if fetchone:
+                for result in cursor.stored_results():
+                    return result.fetchone()
+            elif update or delete:
+                return True
+            else:
+                results = []
+                for result in cursor.stored_results():
+                    results.extend(result.fetchall())
+                return results
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            connection.rollback()
+            return None
+        finally:
+            cursor.close()
+            connection.close()
 
     @staticmethod
     def raw_account_to_account(raw_account):
