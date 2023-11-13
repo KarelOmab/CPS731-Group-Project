@@ -346,8 +346,7 @@ class SqlService:
             email (str): The email address for the account.
 
         Returns:
-            The result of the stored procedure execution, the ID of the
-            account if successful.
+            'Success' message, 'Username in use' message or 'Email in use' message
         """
         return SqlService.call_stored_procedure("InsertAccount", params=(usergroup, username, password, email))
 
@@ -706,4 +705,14 @@ class SqlService:
         - The result of the stored procedure which may be a success or error message.
         """
         return SqlService.call_stored_procedure("DeleteChallengeCommentByIdAndChallengeId", params=(comment_id, challenge_id), delete=True)
+    
+    @staticmethod
+    def purge_account_by_username(username):
+        """
+        Wipes an account record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - username (str): The username of the account to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeAccountByUsername", params=(username,), delete=True)
 
