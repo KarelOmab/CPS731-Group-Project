@@ -329,6 +329,99 @@ class TestMyClass(unittest.TestCase):
         # Assert that an ID was returned (indicating successful insertion)
         self.assertIsNone(comment_id)
 
+    def test_insert_challenge_submission_success(self):
+        # Define test data
+        challenge_id = 1
+        account_id = 1
+        exec_time = 1.23  # Execution time
+        exec_chars = 100  # Number of characters
+        exec_src = "return a+b"  # Example source code
+
+        # Call the method
+        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)[0]['LAST_INSERT_ID()']
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNotNone(submission_id)
+
+        # Optionally: Verify the inserted data in the database
+        challenge_submission = SqlService.get_challenge_submission_by_id(submission_id)
+        SqlService.purge_challenge_submission_by_id(submission_id)  # purge this record
+        self.assertEqual(challenge_submission.challenge_id, challenge_id)
+        self.assertEqual(challenge_submission.account_id, account_id)
+        self.assertEqual(challenge_submission.exec_time, exec_time)
+        self.assertEqual(challenge_submission.exec_chars, exec_chars)
+        self.assertEqual(challenge_submission.exec_src, exec_src)
+
+    def test_insert_challenge_submission_fail_missing_challenge_id(self):
+        # Define test data
+        challenge_id = None
+        account_id = 1
+        exec_time = 1.23  # Execution time
+        exec_chars = 100  # Number of characters
+        exec_src = "return a+b"  # Example source code
+
+        # Call the method
+        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(submission_id)
+
+    def test_insert_challenge_submission_fail_missing_account_id(self):
+        # Define test data
+        challenge_id = 1
+        account_id = None
+        exec_time = 1.23  # Execution time
+        exec_chars = 100  # Number of characters
+        exec_src = "return a+b"  # Example source code
+
+        # Call the method
+        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(submission_id)
+
+    def test_insert_challenge_submission_fail_missing_exec_time(self):
+        # Define test data
+        challenge_id = 1
+        account_id = 1
+        exec_time = None
+        exec_chars = 100  # Number of characters
+        exec_src = "return a+b"  # Example source code
+
+        # Call the method
+        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(submission_id)
+
+    def test_insert_challenge_submission_fail_missing_chars(self):
+        # Define test data
+        challenge_id = 1
+        account_id = 1
+        exec_time = 1.23  # Execution time
+        exec_chars = None
+        exec_src = "return a+b"  # Example source code
+
+        # Call the method
+        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(submission_id)
+
+    def test_insert_challenge_submission_fail_missing_src(self):
+        # Define test data
+        challenge_id = 1
+        account_id = 1
+        exec_time = 1.23  # Execution time
+        exec_chars = 100  # Number of characters
+        exec_src = None
+
+        # Call the method
+        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(submission_id)
+
     
 
     
