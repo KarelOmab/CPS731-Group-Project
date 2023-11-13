@@ -6,6 +6,7 @@ from classes.account.moderator import Moderator
 from classes.challenge.challenge import Challenge
 from classes.challenge.challengetest import ChallengeTest
 from classes.challenge.challengecomment import ChallengeComment
+from classes.challenge.challengesubmission import ChallengeSubmission
 
 # Load environment variables from .env file
 load_dotenv()
@@ -320,7 +321,15 @@ class SqlService:
             'exec_src': 'print("Hello World")'
         }
         """
-        pass
+        comment_id = raw_submission['id']
+        created_at = raw_submission['created_at']
+        challenge_id = raw_submission['challenge_id']
+        account_id = raw_submission['account_id']
+        exec_time = raw_submission['exec_time']
+        exec_chars = raw_submission['exec_chars']
+        exec_src = raw_submission['exec_src']
+        submission = ChallengeSubmission(comment_id, created_at, challenge_id, account_id, exec_time, exec_chars, exec_src)
+        return submission
 
     @staticmethod
     def insert_account(usergroup, username, password, email):
@@ -571,7 +580,12 @@ class SqlService:
         Returns:
             A list of submission objects corresponding to the specified challenge and account.
         """
-        pass
+        raw_submissions = SqlService.call_stored_procedure("GetChallengeSubmissionsByIdAndAccountId", params=(challenge_id, account_id))
+        submissions = []
+        for raw_submission in raw_submissions:
+            submission = SqlService.raw_submission_to_submission(raw_submission)
+            submissions.append(submission)
+        return submissions
 
     @staticmethod
     def update_challenge_name_by_id(id, name):
