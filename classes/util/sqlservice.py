@@ -5,6 +5,7 @@ from classes.account.user import User
 from classes.account.moderator import Moderator
 from classes.challenge.challenge import Challenge
 from classes.challenge.challengetest import ChallengeTest
+from classes.challenge.challengecomment import ChallengeComment
 
 # Load environment variables from .env file
 load_dotenv()
@@ -284,7 +285,16 @@ class SqlService:
             'username': 'johndoe'
         }
         """
-        pass
+        comment_id = raw_comment['id']
+        created_at = raw_comment['created_at']
+        account_id = raw_comment['account_id']
+        is_deleted = raw_comment['is_deleted']
+        challenge_id = raw_comment['challenge_id']
+        title = raw_comment['title']
+        text = raw_comment['text']
+        username = raw_comment['username']
+        comment = ChallengeComment(comment_id, created_at, account_id, is_deleted, challenge_id, title, text, username)
+        return comment
     
     @staticmethod
     def raw_submission_to_submission(raw_submission):
@@ -538,7 +548,12 @@ class SqlService:
         Returns:
             A list of comment objects for the specified challenge.
         """
-        pass
+        raw_comments = SqlService.call_stored_procedure("GetChallengeCommentsById", params=(id, ))
+        comments = []
+        for raw_comment in raw_comments:
+            comment = SqlService.raw_comment_to_comment(raw_comment)
+            comments.append(comment)
+        return comments
 
     @staticmethod
     def get_challenge_submissions_by_id_and_account_id(challenge_id, account_id):
