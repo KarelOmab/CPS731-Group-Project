@@ -217,7 +217,7 @@ class TestMyClass(unittest.TestCase):
 
     def test_insert_challenge_test_success(self):
         # Define test data
-        challenge_id = 1  # Assuming this challenge ID exists in your test database
+        challenge_id = 1
         input_data = "9, 10"
         output_data = "19"
 
@@ -235,7 +235,7 @@ class TestMyClass(unittest.TestCase):
 
     def test_insert_challenge_test_fail_missing_input(self):
         # Define test data
-        challenge_id = 1  # Assuming this challenge ID exists in your test database
+        challenge_id = 1
         input_data = None
         output_data = "19"
 
@@ -247,7 +247,7 @@ class TestMyClass(unittest.TestCase):
 
     def test_insert_challenge_test_fail_missing_output(self):
         # Define test data
-        challenge_id = 1  # Assuming this challenge ID exists in your test database
+        challenge_id = 1
         input_data = "9, 10"
         output_data = None
 
@@ -257,11 +257,53 @@ class TestMyClass(unittest.TestCase):
         # Assert that an ID was returned (indicating successful insertion)
         self.assertIsNone(challenge_test_id)
 
+    
+    def test_insert_challenge_comment_success(self):
+        # Define test data
+        account_id = 1
+        challenge_id = 1
+        title = "Test Comment Title"
+        text = "This is a test comment."
 
-        
+        # Call the method
+        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)[0]['LAST_INSERT_ID()']
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNotNone(comment_id)
+
+        # Optionally: Verify the inserted data in the database
+        challenge_comment = SqlService.get_challenge_comment_by_id(comment_id)
+        SqlService.purge_challenge_comment_by_id(challenge_id)  # purge this record
+        self.assertEqual(challenge_comment.title, title)
+        self.assertEqual(challenge_comment.text, text)
+
+    def test_insert_challenge_comment_fail_missing_title(self):
+        # Define test data
+        account_id = 1
+        challenge_id = 1
+        title = None
+        text = "This is a test comment."
+
+        # Call the method
+        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(comment_id)
+
+    def test_insert_challenge_comment_fail_missing_text(self):
+        # Define test data
+        account_id = 1
+        challenge_id = 1
+        title = "Test Comment Title"
+        text = None
+
+        # Call the method
+        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
+
+        # Assert that an ID was returned (indicating successful insertion)
+        self.assertIsNone(comment_id)
 
     
-
     
 
 # This block runs the test suite

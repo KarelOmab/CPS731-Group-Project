@@ -560,6 +560,24 @@ class SqlService:
             test = SqlService.raw_test_to_test(raw_test)
             tests.append(test)
         return tests
+    
+    @staticmethod
+    def get_challenge_comment_by_id(comment_id):
+        """
+        Retrieves all specific comment for a specific challenge by its ID.
+
+        Invokes the 'GetChallengeCommentById' stored procedure to
+        obtain a specific comment that is then turned into a structured comment object.
+
+        Args:
+            comment_id (int): The unique identifier for the challenge comment to be retrieved.
+
+        Returns:
+            A comment object for the specified challenge.
+        """
+        raw_comment = SqlService.call_stored_procedure("GetChallengeCommentById", params=(comment_id, ), fetchone=True)
+        comment = SqlService.raw_comment_to_comment(raw_comment)
+        return comment
 
     @staticmethod
     def get_challenge_comments_by_id(id):
@@ -755,4 +773,14 @@ class SqlService:
         - challenge_test_id (id): The id of the challenge test to be wiped.
         """
         return SqlService.call_stored_procedure("PurgeChallengeTestById", params=(challenge_test_id,), delete=True)
+    
+    @staticmethod
+    def purge_challenge_comment_by_id(challenge_comment_id):
+        """
+        Wipes a challenge comment record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - challenge_comment_id (id): The id of the challenge comment to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeChallengeCommentById", params=(challenge_comment_id,), delete=True)
 
