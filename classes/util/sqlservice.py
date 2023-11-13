@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 import os
 import mysql.connector
+from classes.account.user import User
+from classes.account.moderator import Moderator
 
 # Load environment variables from .env file
 load_dotenv()
@@ -169,7 +171,21 @@ class SqlService:
         Notes:
         - The usergroup IDs are hardcoded within the method. USERGROUP_MOD corresponds to moderators, and USERGROUP_USER corresponds to regular users.
         """
-        pass
+        account_id = raw_account['id']
+        created_at = raw_account['created_at']
+        usergroup_id = raw_account['usergroup_id']
+        username = raw_account['username']
+        email = raw_account['email']
+
+        USERGROUP_MOD = 2
+        USERGROUP_USER = 3
+
+        if usergroup_id == USERGROUP_MOD:
+            return Moderator(account_id, username)
+        elif usergroup_id == USERGROUP_USER:
+            return User(account_id, username)
+
+        return None
     
     @staticmethod
     def raw_challenge_to_challenge(raw_challenge):
@@ -399,7 +415,9 @@ class SqlService:
             A structured account object if the retrieval is successful, or None if no matching
             account is found or if an error occurs.
         """
-        pass
+        raw_account = SqlService.call_stored_procedure("GetAccountByUsernameAndPassword", params=(username, password), fetchone=True)
+        account = SqlService.raw_account_to_account(raw_account)
+        return account
     
     @staticmethod
     def get_all_challenges():
