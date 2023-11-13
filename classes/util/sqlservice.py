@@ -515,7 +515,13 @@ class SqlService:
         Returns:
             A list of test objects, limited to a predefined number, for the specified challenge.
         """
-        pass
+        MY_LIMIT = 5
+        raw_tests = SqlService.call_stored_procedure("GetChallengeTestsByIdAndLimit", params=(id, MY_LIMIT))
+        tests = []
+        for raw_test in raw_tests:
+            test = SqlService.raw_test_to_test(raw_test)
+            tests.append(test)
+        return tests
 
     @staticmethod
     def get_challenge_comments_by_id(id):
