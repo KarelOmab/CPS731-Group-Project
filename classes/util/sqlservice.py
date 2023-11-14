@@ -175,6 +175,9 @@ class SqlService:
         Notes:
         - The usergroup IDs are hardcoded within the method. USERGROUP_MOD corresponds to moderators, and USERGROUP_USER corresponds to regular users.
         """
+        if not raw_account:
+            return None
+        
         account_id = raw_account['id']
         created_at = raw_account['created_at']
         usergroup_id = raw_account['usergroup_id']

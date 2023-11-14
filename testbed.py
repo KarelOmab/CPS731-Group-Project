@@ -16,6 +16,8 @@ class TestMyClass(unittest.TestCase):
     def test_my_password_hashing_fail(self):
         self.assertFalse(CryptoService.hash_password("123456") == "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c89")
 
+
+    # THE FOLLOWING ARE MYSQL DATABASE TESTS
     def test_insert_account_success(self):
         # Define test data
         usergroup = 3
@@ -421,6 +423,40 @@ class TestMyClass(unittest.TestCase):
 
         # Assert that an ID was returned (indicating successful insertion)
         self.assertIsNone(submission_id)
+
+    def test_get_account_by_username_password_success(self):
+        # Define test data
+        username = "test"  
+        password = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"  
+
+        # Call the method
+        account = SqlService.get_account_by_username_password(username, password)
+
+        # Assert that the account is retrieved correctly
+        self.assertIsNotNone(account)
+        self.assertEqual(account.username, username)
+
+    def test_get_account_by_username_password_fail_missing_username(self):
+        # Define test data
+        username = None 
+        password = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"  
+
+        # Call the method
+        account = SqlService.get_account_by_username_password(username, password)
+
+        # Assert that the account is retrieved correctly
+        self.assertIsNone(account)
+
+    def test_get_account_by_username_password_fail_missing_password(self):
+        # Define test data
+        username = "test" 
+        password = None
+
+        # Call the method
+        account = SqlService.get_account_by_username_password(username, password)
+
+        # Assert that the account is retrieved correctly
+        self.assertIsNone(account)
 
     
 
