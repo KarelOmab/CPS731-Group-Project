@@ -7,12 +7,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Check out repository code
+      uses: actions/checkout@v2
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.11.1'
+
+    - name: List Docker images (debugging step)
+      run: docker images
 
     - name: Pull Docker image
       run: docker pull karelomab/safe-python-env:latest
@@ -24,5 +28,5 @@ jobs:
 
     - name: Run Docker-based Integration Tests
       run: |
-        python -m test.integration_dockerservice
+        python -m unittest test.integration_dockerservice
 
