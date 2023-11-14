@@ -627,7 +627,7 @@ class TestSqlService(unittest.TestCase):
         # Assert that the update was successful
         self.assertTrue(update_result)
 
-    def test_update_challenge_difficulty_by_id_success_medium(self):
+    def test_update_challenge_difficulty_by_id_success_hard(self):
         # Define test data
         challenge_id = 1
 
