@@ -496,7 +496,7 @@ class TestMyClass(unittest.TestCase):
         # Assert that a list of tests is returned
         self.assertIsInstance(tests, list)
 
-    def test_get_challenge_tests_by_id_success_fail_missing_id(self):
+    def test_get_challenge_tests_by_id_fail_missing_id(self):
         # Define test data
         known_challenge_id = None  # Replace with an actual ID from your test database
 
@@ -505,6 +505,8 @@ class TestMyClass(unittest.TestCase):
 
         # Assert that a list of tests is returned
         self.assertIsNone(tests)
+    
+    
 
 
 
