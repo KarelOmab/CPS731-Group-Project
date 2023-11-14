@@ -458,6 +458,15 @@ class TestMyClass(unittest.TestCase):
         # Assert that the account is retrieved correctly
         self.assertIsNone(account)
 
+    def test_get_all_challenges_success(self):
+        # Call the method
+        challenges = SqlService.get_all_challenges()
+
+        # Assert that a list is returned
+        self.assertIsInstance(challenges, list)
+
+    
+
     
 
     
