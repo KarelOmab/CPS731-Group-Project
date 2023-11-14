@@ -24,5 +24,5 @@ jobs:
 
     - name: Run Docker-based Integration Tests
       run: |
-        python -m test.integration_test_dockerservice
+        python -m test.integration_dockerservice
 
