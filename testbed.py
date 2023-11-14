@@ -786,6 +786,30 @@ class TestMyClass(unittest.TestCase):
         # Assert that the update was successful
         self.assertIsNone(update_result)
 
+    def test_delete_challenge_by_id_success(self):
+        # note we dont actually delete challenges here but simply flag their is_deleted to 1 or 0
+        challenge_id = 1
+        IS_DELETED = 1
+
+        # Fetch the original challenge
+        original_challenge = SqlService.get_challenge_by_id(challenge_id)
+
+        # Call the method to delete the challenge
+        delete_result = SqlService.update_challenge_is_deleted_by_id(challenge_id, IS_DELETED)
+
+        # Assert that the deletion was successful
+        self.assertTrue(delete_result)
+
+        # Fetch the challenge to verify it is marked as deleted
+        deleted_challenge = SqlService.get_challenge_by_id(challenge_id)
+        self.assertEqual(deleted_challenge.is_deleted, IS_DELETED)
+
+        # Optionally, you may want to reset the is_deleted flag
+        delete_result = SqlService.update_challenge_is_deleted_by_id(challenge_id, original_challenge.is_deleted)
+
+        # Assert that the deletion was successful
+        self.assertTrue(delete_result)
+
   
 
 
