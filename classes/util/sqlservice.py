@@ -752,6 +752,23 @@ class SqlService:
         """
         return SqlService.call_stored_procedure("UpdateChallengeIsDeletedById", params=(id, is_deleted), update=True)
     
+    @staticmethod
+    def update_challenge_test_is_deleted_by_id(id, is_deleted):
+        """
+        Updates the is_deleted of a challenge test based on its unique identifier.
+
+        This method invokes a stored procedure to update the is_deleted of a challenge test in the database. 
+        It uses the challenge's unique ID to locate the record and update its is_deleted to the provided value.
+
+        Parameters:
+        - id (int): The unique identifier of the challenge test.
+        - is_deleted (int): The new is_deleted to update the challenge test with.
+
+        Returns:
+        - True
+        """
+        return SqlService.call_stored_procedure("UpdateChallengeTestIsDeletedById", params=(id, is_deleted), update=True)
+    
     
     @staticmethod
     def delete_challenge_by_id(id):
