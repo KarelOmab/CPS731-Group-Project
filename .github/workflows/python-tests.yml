@@ -7,10 +7,10 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-      MYSQL_USER: ${{ secrets.MYSQL_USER }}
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-      MYSQL_DB: ${{ secrets.MYSQL_DB }}
+      MYSQL_HOST: "178.128.233.216"
+      MYSQL_USER: "webapp"
+      MYSQL_PASSWORD: "89e01536ac207279409d4de1e5253e01f4a1769e696db0d6062ca9b8f56767c8"
+      MYSQL_DB: "codechamp"
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.x
