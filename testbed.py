@@ -467,61 +467,61 @@ class TestMyClass(unittest.TestCase):
 
     def test_get_challenge_by_id_success(self):
         # Define test data
-        known_challenge_id = 1
+        challenge_id = 1
 
         # Call the method
-        challenge = SqlService.get_challenge_by_id(known_challenge_id)
+        challenge = SqlService.get_challenge_by_id(challenge_id)
 
         # Assert that a challenge object is returned
         self.assertIsNotNone(challenge)
-        self.assertEqual(challenge.id, known_challenge_id)
+        self.assertEqual(challenge.id, challenge_id)
 
     def test_get_challenge_by_id_fail_missing_challenge_id(self):
         # Define test data
-        known_challenge_id = None
+        challenge_id = None
 
         # Call the method
-        challenge = SqlService.get_challenge_by_id(known_challenge_id)
+        challenge = SqlService.get_challenge_by_id(challenge_id)
 
         # Assert that a challenge object is returned
         self.assertIsNone(challenge)
 
     def test_get_challenge_tests_by_id_success(self):
         # Define test data
-        known_challenge_id = 1
+        challenge_id = 1
 
         # Call the method
-        tests = SqlService.get_challenge_tests_by_id(known_challenge_id)
+        tests = SqlService.get_challenge_tests_by_id(challenge_id)
 
         # Assert that a list of tests is returned
         self.assertIsInstance(tests, list)
 
     def test_get_challenge_tests_by_id_fail_missing_id(self):
         # Define test data
-        known_challenge_id = None
+        challenge_id = None
 
         # Call the method
-        tests = SqlService.get_challenge_tests_by_id(known_challenge_id)
+        tests = SqlService.get_challenge_tests_by_id(challenge_id)
 
         # Assert that a list of tests is returned
         self.assertIsNone(tests)
 
     def test_get_challenge_comments_by_id_success(self):
         # Define test data
-        known_challenge_id = 1
+        challenge_id = 1
 
         # Call the method
-        comments = SqlService.get_challenge_comments_by_id(known_challenge_id)
+        comments = SqlService.get_challenge_comments_by_id(challenge_id)
 
         # Assert that a list of comments is returned
         self.assertIsInstance(comments, list)
 
     def test_get_challenge_comments_by_id_fail_missing_challenge_id(self):
         # Define test data
-        known_challenge_id = None
+        challenge_id = None
 
         # Call the method
-        comments = SqlService.get_challenge_comments_by_id(known_challenge_id)
+        comments = SqlService.get_challenge_comments_by_id(challenge_id)
 
         self.assertIsNone(comments)
 
@@ -555,6 +555,46 @@ class TestMyClass(unittest.TestCase):
         submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
 
         self.assertIsNone(submissions)
+
+    def test_update_challenge_name_by_id_success(self):
+        # Define test data
+        challenge_id = 1
+
+        # Fetch the original challenge
+        original_challenge = SqlService.get_challenge_by_id(challenge_id)
+
+        new_name = "Updated Challenge Name"
+
+        # Call the method to update the challenge name
+        update_result = SqlService.update_challenge_name_by_id(challenge_id, new_name)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+        # Fetch the updated challenge to verify the name change
+        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
+        self.assertEqual(updated_challenge.name, new_name)
+
+        # Optionally, reset the name to its original value in the tearDown method
+        update_result = SqlService.update_challenge_name_by_id(challenge_id, original_challenge.name)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+    def test_update_challenge_name_by_id_fail_missing_challenge_name(self):
+        # Define test data
+        challenge_id = 1
+        new_name = None
+
+        # Call the method to update the challenge name
+        update_result = SqlService.update_challenge_name_by_id(challenge_id, new_name)
+
+        # Assert that the update was successful
+        self.assertIsNone(update_result)
+
+    
+
+        
     
     
 
