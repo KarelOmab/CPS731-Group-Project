@@ -231,7 +231,7 @@ class TestMyClass(unittest.TestCase):
 
         # Optionally: Verify the inserted data in the database
         challenge_test = SqlService.get_challenge_test_by_id(challenge_test_id)
-        SqlService.purge_challenge_test_by_id(challenge_id)  # purge this record
+        SqlService.purge_challenge_test_by_id(challenge_test_id)  # purge this record
         self.assertEqual(challenge_test.test_input, input_data)
         self.assertEqual(challenge_test.test_output, output_data)
 
@@ -275,7 +275,7 @@ class TestMyClass(unittest.TestCase):
 
         # Optionally: Verify the inserted data in the database
         challenge_comment = SqlService.get_challenge_comment_by_id(comment_id)
-        SqlService.purge_challenge_comment_by_id(challenge_id)  # purge this record
+        SqlService.purge_challenge_comment_by_id(comment_id)  # purge this record
         self.assertEqual(challenge_comment.title, title)
         self.assertEqual(challenge_comment.text, text)
 
@@ -505,6 +505,26 @@ class TestMyClass(unittest.TestCase):
 
         # Assert that a list of tests is returned
         self.assertIsNone(tests)
+
+    def test_get_challenge_comments_by_id_success(self):
+        # Define a known challenge ID from your test database
+        known_challenge_id = 1  # Replace with an actual ID from your test database
+
+        # Call the method
+        comments = SqlService.get_challenge_comments_by_id(known_challenge_id)
+
+        # Assert that a list of comments is returned
+        self.assertIsInstance(comments, list)
+
+    def test_get_challenge_comments_by_id_fail_missing_challenge_id(self):
+        # Define a known challenge ID from your test database
+        known_challenge_id = None  # Replace with an actual ID from your test database
+
+        # Call the method
+        comments = SqlService.get_challenge_comments_by_id(known_challenge_id)
+
+        # Assert that a list of comments is returned
+        self.assertIsNone(comments)
     
     
 

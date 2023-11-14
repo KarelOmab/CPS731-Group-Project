@@ -604,6 +604,9 @@ class SqlService:
             A list of comment objects for the specified challenge.
         """
         raw_comments = SqlService.call_stored_procedure("GetChallengeCommentsById", params=(id, ))
+        if not raw_comments:
+            return None
+        
         comments = []
         for raw_comment in raw_comments:
             comment = SqlService.raw_comment_to_comment(raw_comment)
