@@ -721,7 +721,6 @@ class TestMyClass(unittest.TestCase):
 
         # Fetch the original challenge
         original_challenge = SqlService.get_challenge_by_id(challenge_id)
-
         new_stub_name = "UpdatedStubName"
 
         # Call the method to update the challenge stub name
@@ -743,7 +742,6 @@ class TestMyClass(unittest.TestCase):
     def test_update_challenge_stub_name_by_id_fail_missing_stub_name(self):
         # Define test data
         challenge_id = 1
-
         new_stub_name = None
 
         # Call the method to update the challenge stub name
@@ -751,6 +749,46 @@ class TestMyClass(unittest.TestCase):
 
         # Assert that the update was successful
         self.assertIsNone(update_result)
+
+    def test_update_challenge_stub_block_by_id_success(self):
+        # Define test data
+        challenge_id = 1  # Replace with an actual challenge ID
+
+        # Fetch the original challenge
+        original_challenge = SqlService.get_challenge_by_id(challenge_id)
+
+        new_stub_block = "Updated stub block content"
+
+        # Call the method to update the challenge stub block
+        update_result = SqlService.update_challenge_stub_block_by_id(challenge_id, new_stub_block)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+        # Fetch the updated challenge to verify the stub block change
+        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
+        self.assertEqual(updated_challenge.stub_block, new_stub_block)
+
+        # Optionally, reset the stub block to its original value
+        update_result = SqlService.update_challenge_stub_block_by_id(challenge_id, original_challenge.stub_block)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+    def test_update_challenge_stub_block_by_id_fail_missing_stub_block(self):
+        # Define test data
+        challenge_id = 1  # Replace with an actual challenge ID
+        new_stub_block = None
+
+        # Call the method to update the challenge stub block
+        update_result = SqlService.update_challenge_stub_block_by_id(challenge_id, new_stub_block)
+
+        # Assert that the update was successful
+        self.assertIsNone(update_result)
+
+  
+
+
 
     
 
