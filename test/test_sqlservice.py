@@ -1,7 +1,7 @@
 import unittest
 from classes.util.sqlservice import SqlService
 
-class TestMyClass(unittest.TestCase):
+class TestSqlService(unittest.TestCase):
     
     def test_insert_account_success(self):
         # Define test data
