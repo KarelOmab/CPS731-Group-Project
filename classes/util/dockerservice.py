@@ -1,3 +1,4 @@
+import ast
 class DockerService:
     @staticmethod
     def validate_user_method(code, method_name):
@@ -18,7 +19,15 @@ class DockerService:
                 method is defined, False otherwise. The message is 'valid' if the method
                 is found, or an error message specifying that the required method is missing.
         """
-        pass
+        try:
+            tree = ast.parse(code)
+            for node in tree.body:
+                if isinstance(node, ast.FunctionDef):
+                    if node.name == method_name:
+                        return True, "valid"
+            return False, f"Error! Your code must contain the required method: def {method_name}"
+        except Exception as e:
+            return False, str(e)
 
     @staticmethod
     def execute_code(challenge, tests, user_code):
