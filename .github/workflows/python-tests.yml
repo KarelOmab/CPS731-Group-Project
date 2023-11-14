@@ -6,7 +6,11 @@ jobs:
   test:
 
     runs-on: ubuntu-latest
-
+    env:
+      MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+      MYSQL_USER: ${{ secrets.MYSQL_USER }}
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      MYSQL_DB: ${{ secrets.MYSQL_DB }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.x
