@@ -1,4 +1,9 @@
 import ast
+import threading
+import time
+import re
+import docker
+
 class DockerService:
     @staticmethod
     def validate_user_method(code, method_name):
@@ -51,4 +56,91 @@ class DockerService:
                 - Any error or exception messages.
                 - Execution time and a flag indicating if the execution timed out.
         """
-        pass
+        client = docker.from_env()
+        appended_code_base = f"""
+def captured_print(*args, **kwargs):
+    global print_outputs
+    original_print(*args, **kwargs)
+    print_outputs.append(' '.join(map(str, args)))
+
+import builtins
+original_print = builtins.print
+builtins.print = captured_print
+print_outputs = []
+
+""" + user_code
+
+        def target(result_dict):
+            container = client.containers.run(
+                "safe-python-env",
+                command=["sleep", "300"],
+                detach=True,
+                network_mode="none",
+                mem_limit='100m',
+                cpuset_cpus='0',
+                read_only=True
+            )
+
+            start_time = time.time()
+
+            for test_case in tests:
+                appended_code = appended_code_base + f"\nresult = {challenge.stub_name}({test_case.test_input})\nprint('RESULT:', result)\n"
+
+                try:
+                    output = container.exec_run(
+                        ["python", "-c", appended_code]
+                    )[1]  # Using exec_run to execute the command on the already running container
+                    lines = output.decode().strip().splitlines()
+                    function_result = None
+
+                    for line in lines:
+                        if line.startswith("RESULT:"):
+                            function_result_str = line.split(":", 1)[1].strip()
+                            # Safely evaluate the string to get the actual list
+                            function_result = ast.literal_eval(function_result_str)
+                        else:
+                            result_dict['print_outputs'].append(line)
+
+                    # Compare the evaluated list with the expected result
+                    if function_result != ast.literal_eval(test_case.test_output):
+                        result_dict['error'] = f"Failed! For input ({test_case.test_input}) expected result {test_case.test_output}, but returned {function_result}."
+                        result_dict['success'] = False
+                        return  # Terminate upon first unexpected result
+                    else:
+                        result_dict['tests_passed'] += 1
+                except docker.errors.ContainerError as ce:
+                    error_message = ce.stderr.decode()
+                    print("error_message", error_message)
+
+                    # Using regex to find the specific error message
+                    match = re.search(r"(\w+Error): ([^\n]+)", error_message)
+                    if match:
+                        error_type, error_detail = match.groups()
+                        result_dict['exception'] = f"{error_type}: {error_detail}"
+                        result_dict['success'] = False
+
+            result_dict['exec_time'] = time.time() - start_time
+            container.stop()  # Stop the container
+            container.remove()  # Remove the container
+
+        result_dict = {
+            'tests_total': len(tests),
+            'tests_passed': 0,
+            'print_outputs': [],
+            'error': "",
+            'exception': "",
+            'success': True,
+            'timeout': False,
+            'exec_time': 0.0,
+            'exec_chars': 0
+        }
+        thread = threading.Thread(target=target, args=(result_dict,))
+        thread.start()
+        thread.join(timeout=challenge.time_allowed_sec)
+        result_dict['exec_chars'] = len(user_code)
+
+        if thread.is_alive():
+            result_dict['timeout'] = True
+            result_dict['success'] = False
+
+        return result_dict
