@@ -592,6 +592,95 @@ class TestMyClass(unittest.TestCase):
         # Assert that the update was successful
         self.assertIsNone(update_result)
 
+    def test_update_challenge_difficulty_by_id_success_easy(self):
+        # Define test data
+        challenge_id = 1
+
+        # Fetch the original challenge
+        original_challenge = SqlService.get_challenge_by_id(challenge_id)
+
+        new_difficulty = "Easy"  # Choose from 'Easy', 'Medium', 'Hard'
+
+        # Call the method to update the challenge difficulty
+        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, new_difficulty)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+        # Fetch the updated challenge to verify the difficulty change
+        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
+        self.assertEqual(updated_challenge.difficulty, new_difficulty)
+
+        # Optionally, reset the name to its original value in the tearDown method
+        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, original_challenge.difficulty)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+    def test_update_challenge_difficulty_by_id_success_medium(self):
+        # Define test data
+        challenge_id = 1
+
+        # Fetch the original challenge
+        original_challenge = SqlService.get_challenge_by_id(challenge_id)
+
+        new_difficulty = "Medium"  # Choose from 'Easy', 'Medium', 'Hard'
+
+        # Call the method to update the challenge difficulty
+        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, new_difficulty)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+        # Fetch the updated challenge to verify the difficulty change
+        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
+        self.assertEqual(updated_challenge.difficulty, new_difficulty)
+
+        # Optionally, reset the name to its original value in the tearDown method
+        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, original_challenge.difficulty)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+    def test_update_challenge_difficulty_by_id_success_medium(self):
+        # Define test data
+        challenge_id = 1
+
+        # Fetch the original challenge
+        original_challenge = SqlService.get_challenge_by_id(challenge_id)
+
+        new_difficulty = "Hard"  # Choose from 'Easy', 'Medium', 'Hard'
+
+        # Call the method to update the challenge difficulty
+        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, new_difficulty)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+        # Fetch the updated challenge to verify the difficulty change
+        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
+        self.assertEqual(updated_challenge.difficulty, new_difficulty)
+
+        # Optionally, reset the name to its original value in the tearDown method
+        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, original_challenge.difficulty)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+    def test_update_challenge_difficulty_by_id_fail_invalid_difficulity(self):
+        # Define test data
+        challenge_id = 1
+
+        new_difficulty = "FooBar"  # Choose from 'Easy', 'Medium', 'Hard'
+
+        # Call the method to update the challenge difficulty
+        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, new_difficulty)
+
+        # Assert that the update was successful
+        self.assertIsNone(update_result)
+
+    
+
     
 
         
