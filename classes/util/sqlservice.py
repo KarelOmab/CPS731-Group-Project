@@ -538,6 +538,9 @@ class SqlService:
             A list of test objects for the specified challenge.
         """
         raw_tests = SqlService.call_stored_procedure("GetChallengeTestsById", params=(id, ))
+        if not raw_tests:
+            return None
+        
         tests = []
         for raw_test in raw_tests:
             test = SqlService.raw_test_to_test(raw_test)
