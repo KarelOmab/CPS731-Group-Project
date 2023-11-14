@@ -706,7 +706,7 @@ class TestMyClass(unittest.TestCase):
 
     def test_update_challenge_description_by_id_fail_missing_description(self):
         # Define test data
-        challenge_id = 1  # Replace with an actual challenge ID
+        challenge_id = 1
         new_description = None
 
         # Call the method to update the challenge description
@@ -715,6 +715,42 @@ class TestMyClass(unittest.TestCase):
         # Assert that the update was successful
         self.assertIsNone(update_result)
 
+    def test_update_challenge_stub_name_by_id_success(self):
+        # Define test data
+        challenge_id = 1
+
+        # Fetch the original challenge
+        original_challenge = SqlService.get_challenge_by_id(challenge_id)
+
+        new_stub_name = "UpdatedStubName"
+
+        # Call the method to update the challenge stub name
+        update_result = SqlService.update_challenge_stub_name_by_id(challenge_id, new_stub_name)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+        # Fetch the updated challenge to verify the stub name change
+        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
+        self.assertEqual(updated_challenge.stub_name, new_stub_name)
+
+        # Optionally, reset the stub name to its original value
+        update_result = SqlService.update_challenge_stub_name_by_id(challenge_id, original_challenge.stub_name)
+
+        # Assert that the update was successful
+        self.assertTrue(update_result)
+
+    def test_update_challenge_stub_name_by_id_fail_missing_stub_name(self):
+        # Define test data
+        challenge_id = 1
+
+        new_stub_name = None
+
+        # Call the method to update the challenge stub name
+        update_result = SqlService.update_challenge_stub_name_by_id(challenge_id, new_stub_name)
+
+        # Assert that the update was successful
+        self.assertIsNone(update_result)
 
     
 
