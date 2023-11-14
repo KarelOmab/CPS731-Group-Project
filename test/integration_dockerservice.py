@@ -137,7 +137,7 @@ def sum(x, y):
         # Sample user code that should be executed inside Docker
         user_code = """
 def sum(x, y):
-    ret x + x
+    ret x + y
 """
 
         # Run the execute_code method
