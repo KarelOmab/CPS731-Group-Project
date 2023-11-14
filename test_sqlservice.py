@@ -1,23 +1,8 @@
 import unittest
-from classes.util.cryptoservice import CryptoService # this is my import to test
 from classes.util.sqlservice import SqlService
 
-# This is the test class
 class TestMyClass(unittest.TestCase):
     
-    def setUp(self):
-        # Set up any variables or instances needed for the tests
-        #self.my_class_instance = MyClass()
-        pass
-
-    def test_my_password_hashing_success(self):
-        self.assertTrue(CryptoService.hash_password("123456") == "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92")
-       
-    def test_my_password_hashing_fail(self):
-        self.assertFalse(CryptoService.hash_password("123456") == "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c89")
-
-
-    # THE FOLLOWING ARE MYSQL DATABASE TESTS
     def test_insert_account_success(self):
         # Define test data
         usergroup = 3
@@ -836,7 +821,7 @@ class TestMyClass(unittest.TestCase):
         # Assert that the deletion was successful
         self.assertTrue(delete_result)
 
-    def test_delete_challenge_comment_by_id_and_challenge_id(self):
+    def test_delete_challenge_comment_by_id_and_challenge_id_success(self):
         # note we dont actually delete challenge comments but simply flag their is_deleted to 1 or 0
         # Define test data
         comment_id = 1
@@ -861,28 +846,5 @@ class TestMyClass(unittest.TestCase):
         # Assert that the deletion was successful
         self.assertTrue(delete_result)
   
-
-
-
-    
-
-    
-
-        
-    
-    
-
-
-
-    
-
-    
-
-    
-
-    
-    
-
-# This block runs the test suite
 if __name__ == '__main__':
     unittest.main()
