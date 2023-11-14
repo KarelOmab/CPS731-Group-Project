@@ -16,7 +16,7 @@ jobs:
         python-version: '3.11.1'
 
     - name: Login to Docker Hub
-      if: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      if: secrets.DOCKER_HUB_ACCESS_TOKEN
       run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
 
     - name: Pull Docker image
