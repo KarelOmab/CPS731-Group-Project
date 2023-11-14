@@ -221,6 +221,9 @@ class SqlService:
             'time_allowed_sec': 60
         }
         """
+        if not raw_challenge:
+            return None
+        
         challenge_id = raw_challenge['id']
         created_at = raw_challenge['created_at']
         account_id = raw_challenge['account_id']

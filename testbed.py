@@ -465,6 +465,29 @@ class TestMyClass(unittest.TestCase):
         # Assert that a list is returned
         self.assertIsInstance(challenges, list)
 
+    def test_get_challenge_by_id_success(self):
+        # Define test data
+        known_challenge_id = 1
+
+        # Call the method
+        challenge = SqlService.get_challenge_by_id(known_challenge_id)
+
+        # Assert that a challenge object is returned
+        self.assertIsNotNone(challenge)
+        self.assertEqual(challenge.id, known_challenge_id)
+
+    def test_get_challenge_by_id_fail_missing_challenge_id(self):
+        # Define test data
+        known_challenge_id = None
+
+        # Call the method
+        challenge = SqlService.get_challenge_by_id(known_challenge_id)
+
+        # Assert that a challenge object is returned
+        self.assertIsNone(challenge)
+
+
+
     
 
     
