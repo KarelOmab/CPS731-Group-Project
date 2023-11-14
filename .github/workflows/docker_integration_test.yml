@@ -16,9 +16,8 @@ jobs:
         python-version: '3.11.1'
 
     - name: Login to Docker Hub
-      if: secrets.DOCKER_HUB_ACCESS_TOKEN
       run: |
-        echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login --username "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+        echo "kc4j8LJUqt4g" | docker login --username karelomab --password-stdin
 
     - name: Pull Docker image
       run: docker pull karelomab/safe-python-env:latest
