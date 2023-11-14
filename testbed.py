@@ -488,7 +488,7 @@ class TestMyClass(unittest.TestCase):
 
     def test_get_challenge_tests_by_id_success(self):
         # Define test data
-        known_challenge_id = 1  # Replace with an actual ID from your test database
+        known_challenge_id = 1
 
         # Call the method
         tests = SqlService.get_challenge_tests_by_id(known_challenge_id)
@@ -498,7 +498,7 @@ class TestMyClass(unittest.TestCase):
 
     def test_get_challenge_tests_by_id_fail_missing_id(self):
         # Define test data
-        known_challenge_id = None  # Replace with an actual ID from your test database
+        known_challenge_id = None
 
         # Call the method
         tests = SqlService.get_challenge_tests_by_id(known_challenge_id)
@@ -507,8 +507,8 @@ class TestMyClass(unittest.TestCase):
         self.assertIsNone(tests)
 
     def test_get_challenge_comments_by_id_success(self):
-        # Define a known challenge ID from your test database
-        known_challenge_id = 1  # Replace with an actual ID from your test database
+        # Define test data
+        known_challenge_id = 1
 
         # Call the method
         comments = SqlService.get_challenge_comments_by_id(known_challenge_id)
@@ -517,14 +517,44 @@ class TestMyClass(unittest.TestCase):
         self.assertIsInstance(comments, list)
 
     def test_get_challenge_comments_by_id_fail_missing_challenge_id(self):
-        # Define a known challenge ID from your test database
-        known_challenge_id = None  # Replace with an actual ID from your test database
+        # Define test data
+        known_challenge_id = None
 
         # Call the method
         comments = SqlService.get_challenge_comments_by_id(known_challenge_id)
 
-        # Assert that a list of comments is returned
         self.assertIsNone(comments)
+
+    def test_get_challenge_submissions_by_id_and_account_id_success(self):
+        # Define test data
+        challenge_id = 1
+        account_id = 1
+
+        # Call the method
+        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
+
+        # Assert that a list of submissions is returned
+        self.assertIsInstance(submissions, list)
+
+    def test_get_challenge_submissions_by_id_and_account_id_fail_missing_challenge_id(self):
+        # Define test data
+        challenge_id = None
+        account_id = 1
+
+        # Call the method
+        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
+
+        self.assertIsNone(submissions)
+
+    def test_get_challenge_submissions_by_id_and_account_id_fail_missing_account_id(self):
+        # Define test data
+        challenge_id = 1
+        account_id = None
+
+        # Call the method
+        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
+
+        self.assertIsNone(submissions)
     
     
 

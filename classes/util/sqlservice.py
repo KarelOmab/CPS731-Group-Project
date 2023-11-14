@@ -649,6 +649,9 @@ class SqlService:
             A list of submission objects corresponding to the specified challenge and account.
         """
         raw_submissions = SqlService.call_stored_procedure("GetChallengeSubmissionsByIdAndAccountId", params=(challenge_id, account_id))
+        if not raw_submissions:
+            return None
+        
         submissions = []
         for raw_submission in raw_submissions:
             submission = SqlService.raw_submission_to_submission(raw_submission)
