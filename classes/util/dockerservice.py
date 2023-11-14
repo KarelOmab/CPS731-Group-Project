@@ -99,7 +99,14 @@ print_outputs = []
                             # Safely evaluate the string to get the actual list
                             function_result = ast.literal_eval(function_result_str)
                         else:
-                            result_dict['print_outputs'].append(line)
+                            # Using regex to find the specific error message
+                            match = re.search(r"(\w+Error): ([^\n]+)", line)
+                            if match:
+                                error_type, error_detail = match.groups()
+                                result_dict['exception'] = f"{error_type}: {error_detail}"
+                                result_dict['success'] = False
+                            else:
+                                result_dict['print_outputs'].append(line)
 
                     # Compare the evaluated list with the expected result
                     if function_result != ast.literal_eval(test_case.test_output):
@@ -140,7 +147,7 @@ print_outputs = []
         result_dict['exec_chars'] = len(user_code)
 
         if thread.is_alive():
-            result_dict['timeout'] = True
+            result_dict['timeout'] = (result_dict['exec_time'] >= challenge.time_allowed_sec)
             result_dict['success'] = False
 
         return result_dict
