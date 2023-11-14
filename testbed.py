@@ -787,7 +787,7 @@ class TestMyClass(unittest.TestCase):
         self.assertIsNone(update_result)
 
     def test_delete_challenge_by_id_success(self):
-        # note we dont actually delete challenges here but simply flag their is_deleted to 1 or 0
+        # note we dont actually delete challenges but simply flag their is_deleted to 1 or 0
         # Define test data
         challenge_id = 1
         IS_DELETED = 1
@@ -812,6 +812,7 @@ class TestMyClass(unittest.TestCase):
         self.assertTrue(delete_result)
 
     def test_delete_challenge_test_by_id_and_challenge_id_success(self):
+        # note we dont actually delete challenge tests but simply flag their is_deleted to 1 or 0
         # Define test data
         challenge_test_id = 2
         IS_DELETED = 1
@@ -835,6 +836,30 @@ class TestMyClass(unittest.TestCase):
         # Assert that the deletion was successful
         self.assertTrue(delete_result)
 
+    def test_delete_challenge_comment_by_id_and_challenge_id(self):
+        # note we dont actually delete challenge comments but simply flag their is_deleted to 1 or 0
+        # Define test data
+        comment_id = 1
+        IS_DELETED = 1
+
+        # Fetch the original challenge comment
+        original_challenge_comment = SqlService.get_challenge_comment_by_id(comment_id)
+
+        # Call the method to delete the challenge comment
+        delete_result = SqlService.update_challenge_comment_is_deleted_by_id(comment_id, IS_DELETED)
+
+        # Assert that the deletion was successful
+        self.assertTrue(delete_result)
+
+        # Fetch the challenge comment to verify it is marked as deleted
+        deleted_challenge_comment = SqlService.get_challenge_comment_by_id(comment_id)
+        self.assertEqual(deleted_challenge_comment.is_deleted, IS_DELETED)
+
+        # Optionally, reset the is deleted to its original value
+        delete_result = SqlService.update_challenge_comment_is_deleted_by_id(comment_id, original_challenge_comment.is_deleted)
+
+        # Assert that the deletion was successful
+        self.assertTrue(delete_result)
   
 
 
