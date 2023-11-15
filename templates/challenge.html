@@ -1,11 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-100">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ challenge.name }}</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap CSS CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Bootstrap JS, Popper.js, and jQuery are included at the end of the body for performance reasons -->
+    <script src= "https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- This is just display symbols such as arrows -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => 
+      {
+        var edit_difficulty = document.getElementById('edit-difficulty')
+        edit_difficulty.addEventListener('click', function() 
+          {
+
+            var challenge_id = document.getElementById('edit-difficulty').name;
+            console.log('challenge id is '+challenge_id);
+            // Prompt the admin for input
+            var userInput = prompt("Please enter the new difficulty level:");
+            
+        
+              // Check if the user entered something
+              if (userInput !== null && userInput.trim() !== "") {
+                  // Send the input to the server using a POST request
+                  fetch('/edit_challenge_difficulty/'+challenge_id, { // Replace with your actual endpoint
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json',
+                          // Include CSRF token header if needed for security
+                      },
+                      body: JSON.stringify({ 
+                          newValue: userInput // Sending the data
+                      })
+                  })
+                  .then(response => {
+                      if (response.ok) {
+                          //refreshing the page for any update
+                          location.reload(true);
+                      } else {
+                          // Handle errors
+                          alert("Error occured on editing the challenge difficulty level");
+                      }
+                  })
+                  .then(data => {
+                      // Process the data/response from the server
+                      console.log(data);
+                      alert("Update successful");
+                      // Optionally, display a success message to the admin
+                  })
+                  .catch(error => {
+                      console.error('Error:', error);
+                      // Optionally, display an error message to the admin
+                  });
+              }
+          });
+        });
+    </script>
+
+            
+
+   
 </head>
-<body>
+<body class="d-flex flex-column h-100">
 {% include 'navbar.html' %}
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
@@ -14,5 +77,89 @@
     {% endfor %}
   {% endif %}
 {% endwith %}
+<div class="container mt-3">
+  <div class="card">
+      <div class="card-header">
+          <h2 class="card-title">{{ challenge.name }} <a href="/edit/description" class="btn btn-link">Edit</a></h2>
+      </div>
+      <div class="card-body">
+          <h5 class="card-title">Difficulty: {{ challenge.difficulty }} <a  id = 'edit-difficulty' name = '{{ challenge.id }}'  class="btn btn-link">Edit</a></h5>
+          <p class="card-text">Description: {{ challenge.description }} <a href="/edit/description" class="btn btn-link">Edit</a></p>
+          
+          <!-- Challenge Examples -->
+          <ul class="list-group mb-3">
+              <h4 class="mb-3">Examples</h4>
+              {% for test in testcases %}
+              <li class="list-group-item">
+                  <div style="display:inline-block">
+                    <p style="display: inline">{{ challenge.stub_name }}</p>
+                    <p style="display: inline;">(</p>
+                    <p style="display: inline;">{{ test.test_input }}</p>
+                    <p style="display: inline;">)</p> 
+                    <p style="display: inline;"> <i class="fas fa-arrow-right"></i></p>
+                    <p style="display: inline;"> {{ test.test_output }}</p>
+                  </div>
+                  <a href="/delete/example/{{ challenge.id }}" class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
+                  
+              </li>
+              {% endfor %}
+          </ul>
+
+          <!-- Add Test Case -->
+          <h4 class="mb-3">Add Test Case</h4>
+          <form action="/add/testcase" method="post">
+            <div class="form-row">
+              <div class="form-group">
+                <label class = "stubLabel" for="stubName">{{ challenge.stub_name }}</label>
+              </div>
+              <div class="col">
+                <input name = "inputParameters[]" type="text" class="form-control" id="inputParameters3" placeholder="input parameters" required>
+              </div>
+              <div class="col">
+                <input name = "expectedOutput[]" type="text" class="form-control" id="expectedOutput3" placeholder="output" required>
+              </div>
+              <div class="col">
+                <button type="submit" class="btn btn-primary">Add Test Case</button>
+              </div>
+            </div> 
+          </form>
+
+          <!-- Code Stub -->
+          <h4 class="mb-3">Stub Name: <a href="/edit/difficulty" class="btn btn-link">Edit</a></h4>
+          <h4 class="mb-3">Code Stub</h4>
+          <form action="/update/codestub" method="post">
+              <div class="form-group">
+                  <textarea class="form-control" id="codeStub" name="codeStub" rows="5"> {{ challenge.stub_block }}
+                  </textarea>
+              </div>
+              <button type="submit" class="btn btn-success">Update Code Stub</button>
+          </form>
+
+          <h4 class="mb-3">Add a Comment</h4>
+          <form action="/add/comment" method="post">
+            <div class="form-group">
+              <label class = "comment-name" for="comment-name">Title</label>
+              <input name = "comment-title" type="text" class="form-control" id="comment-title" placeholder="Comment Title" required>
+              <label  for="comment-content">Comment</label>
+              <textarea class="form-control" id="codeStub" name="codeStub" rows="5" placeholder="Add your comment here"></textarea>
+            </div> 
+            <button type="submit" class="btn btn-success">Submit Comment</button>
+          </form>
+          <h4 class="mb-3">Comments</h4>
+          <li class="list-group-item">
+            <p>No comments yet</p>
+          </li>
+
+      </div>
+  </div>
+
+  <!-- Submissions -->
+  <!-- ... -->
+
+  <!-- Comments -->
+  <!-- ... -->
+</div>
 </body>
+{% include 'footer.html' %}
 </html>
+

@@ -1,6 +1,10 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request,redirect, session,url_for, flash,jsonify
 import os
 from dotenv import load_dotenv
+import sys
+from classes.util.sqlservice import SqlService
+from classes.util.cryptoservice import CryptoService # this is my import to test 
+from classes.challenge.challenge import Challenge
 
 class App:
     def __init__(self):
@@ -41,6 +45,15 @@ class App:
         Returns:
             A rendered template of 'index.html' which is the home page of the website.
         """
+        '''create_table_query = r"""
+                    CREATE TABLE users (
+                        user_id INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(255) NOT NULL UNIQUE,
+                        email VARCHAR(255) NOT NULL UNIQUE,
+                        password VARCHAR(255) NOT NULL
+                    );
+                    """ '''
+        
         return render_template('index.html')
 
     def register(self):
@@ -97,7 +110,9 @@ class App:
             A redirect to the 'index' route for a successful login, or a string 
             with an error message for a failed login attempt.
         """
-        pass
+       
+        
+        
 
     def logout(self):
         """
@@ -127,7 +142,7 @@ class App:
         Returns:
             An HTML page rendered from the 'login.html' template.
         """
-        pass
+        return render_template('login.html')
 
     def challenges(self):
         """
@@ -142,7 +157,19 @@ class App:
             An HTML page rendered from the 'challenges.html' template with all
             challenges passed as a context variable.
         """
-        pass
+
+        #fetch all the challenges
+        try:
+            challenges = SqlService.get_all_challenges()
+
+            #Sorting the challenges by their difficulty level
+            difficulty_mapping = {'Easy': 1, 'Medium': 2, 'Hard': 3}
+            challenges.sort(key=lambda x: difficulty_mapping.get(x.difficulty, 0))
+            #flash('Challenge added successfully!')
+            return render_template("challenges.html", challenges = challenges)
+        except:
+            print()
+            #flash('Failed to add challenge.')
 
     def insert_challenge(self):
         """
@@ -155,7 +182,7 @@ class App:
         Returns:
             An HTML page rendered from the 'insert_challenge.html' template.
         """
-        pass
+        return render_template("insert_challenge.html")
 
     def submit_challenge(self):
         """
@@ -181,7 +208,41 @@ class App:
             A redirect to the 'insert_challenge' route, potentially with flash messages
             indicating the status of the challenge creation (success or error).
         """
-        pass
+
+        # Access the new challenge informations
+        challenge_name = request.form['challengeName']
+        challenge_difficulty = request.form['challengeDifficulty']
+        challenge_description = request.form['challengeDescription']
+        stub_name = request.form['stubName']
+        stub_block = request.form['stubBlock']
+        time_allowed = request.form['timeAllowed']
+
+        # For the dynamic test cases, you might use a prefix and loop over them
+      
+        input_test_cases = request.form.getlist('inputParameters[]')
+        output_test_cases = request.form.getlist('expectedOutput[]')
+        print(f"input test cases are {input_test_cases}")
+        print(f"output test cases are {output_test_cases}")
+       
+        # Process the new challenge to the database
+        try:
+            last_id = SqlService.insert_challenge(1,challenge_name,challenge_difficulty, challenge_description, stub_name, stub_block,time_allowed)
+            print(f"last id is {last_id}")
+            #inserting a challenge test cases
+            for input_case, output_case in zip(input_test_cases,output_test_cases):
+                print(f"input test case is {input_case} and output case is {output_case}")
+                last_id_inserted = SqlService.insert_challenge_test(last_id[0]['LAST_INSERT_ID()'],input_case,output_case)
+           
+
+            if last_id != None:
+                challenges = SqlService.get_all_challenges()
+                print("New challenge added successfully")
+        except RuntimeError as err:
+            print(f"Error! {err}")
+
+        #inserting the challenge 
+        #return redirect(url_for('challenges'), messages="Challenge added successfully") 
+        return render_template('challenges.html',challenges = challenges, messages="Challenge added successfully" )
 
     def submission(self, challenge_id):
         """
@@ -237,7 +298,12 @@ class App:
             The 'challenge.html' template rendered with the challenge details, tests, comments, and user
             submission data (if the user is logged in and has submission data).
         """
-        pass
+        #Get the challenge details
+        challenge = SqlService.get_challenge_by_id(challenge_id)
+        #Get the challenge test cases
+        testcases = SqlService.get_challenge_tests_by_id(challenge_id)
+
+        return render_template('challenge.html', challenge=challenge, testcases=testcases)
 
     def submit_comment(self, challenge_id):
         """
@@ -278,7 +344,14 @@ class App:
             A redirect to the challenges overview page with a flash message indicating the outcome of the
             deletion attempt.
         """
-        pass
+        try:
+            #delete_confirmation = SqlService.delete_challenge_by_id(challenge_id)
+
+            delete_test_confirmation = SqlService.get_challenge_test_by_id(challenge_id)
+            print(f"delete confirmation is {delete_test_confirmation}")
+        except RuntimeError as err:
+            print(f"Error! {err}")
+        return redirect(url_for('challenges'))
 
     def edit_challenge_name(self, challenge_id):
         """
@@ -308,7 +381,18 @@ class App:
             A JSON response indicating whether the update was successful, with an HTTP status code
             of 200 for success or 403 for permission denied. Flash messages provide user feedback.
         """
-         pass
+         try:
+            new_difficulty_level = request.json
+
+            print(f"New difficulty level received {new_difficulty_level}")
+            SqlService.update_challenge_difficulty_by_id(challenge_id,new_difficulty_level['newValue'])
+            return jsonify({'message': 'ok'}), 200
+         except:
+             return jsonify({'message': 'anutorized user'}), 403
+        
+             
+         
+       
 
     def edit_challenge_description(self, challenge_id):
         """
