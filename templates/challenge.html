@@ -1,18 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>{{ challenge.name }}</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <meta charset="UTF-8">
+  <title>{{ challenge.name }}</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
+
 <body>
-{% include 'navbar.html' %}
-{% with messages = get_flashed_messages(with_categories=true) %}
+  {% include 'navbar.html' %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
+  {% for category, message in messages %}
+  <div class="alert alert-{{ category }}">{{ message }}</div>
+  {% endfor %}
   {% endif %}
-{% endwith %}
+  {% endwith %}
+  <div>
+    <h2>
+      {{challenge.name}}
+    </h2>
+    <p>
+      {{challenge.difficulty}}
+    </p>
+    <p>
+      {{challenge.description}}
+    </p>
+    <h3>
+      Examples:
+    </h3>
+    <ul>
+      {% for example in examples %}
+      <li>
+        {{example.stub_name}}({{example.input}}) -> {{example.output}}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <hr>
+  <div>
+    <h2>
+      Comments
+    </h2>
+    {% for comment in comments %}
+      <h3>
+        {{comment.title}}
+      </h3>
+      <p>
+        {{comment.text}}
+      </p>
+      <p>
+        Posted By: {{comment.username}} on {{comment.datetime}}
+      </p>
+    {% endfor %}
+  </div>
 </body>
+
 </html>
