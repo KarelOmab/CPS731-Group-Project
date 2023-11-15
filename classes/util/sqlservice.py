@@ -137,6 +137,7 @@ class SqlService:
                 for result in cursor.stored_results():
                     results.extend(result.fetchall())
                 return results
+
         except mysql.connector.Error as err:
             #print(f"Error: {err}")
             connection.rollback()
@@ -223,7 +224,6 @@ class SqlService:
         """
         if not raw_challenge:
             return None
-        
         challenge_id = raw_challenge['id']
         created_at = raw_challenge['created_at']
         account_id = raw_challenge['account_id']

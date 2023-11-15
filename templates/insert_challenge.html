@@ -32,6 +32,14 @@
           });
         });
 
+        //This might be removed at the end, it only for testing purpose
+        function remove_added_test_case()
+        {
+         
+          var remove_div = document.getElementById('form-row-div');
+          remove_div.remove();
+        }
+
 
         document.addEventListener('DOMContentLoaded', (event) => {
         var inputArea = document.getElementById("stubBlock");
@@ -52,19 +60,41 @@
 
       function addTestCase() 
       {
-          var testCasesDiv = document.getElementById('testCases');
 
+          var testCasesDiv = document.getElementById('testCases');
+          //<button class="btn btn-danger btn-sm float-right  style=color:white">Delete</button>
           //This is for naming consistency
+          //name = "inputParameters[]"
+          //name = "expectedOutput[]"
+
+          var all_remove_buttons = document.getElementsByName('remove_button[]');
+          var i = 1;
+
+          if(all_remove_buttons.length == 0)
+          {
+            i += 3;
+          }
+
+          else
+          {
+            i = i + 3 + all_remove_buttons.length;
+            i 
+          }
+
           var existing_labels = document.getElementsByClassName('stubLabel');
           console.log(existing_labels);
           // Create the wrapper div for the new test case input group
           var newTestCase = document.createElement('div');
+          
+
           newTestCase.setAttribute('class', 'form-row');
+          newTestCase.setAttribute('id', 'form-row-div');
 
           // Creating a new label
           var labelDiv = document.createElement('div');
           labelDiv.setAttribute('class', 'form-group');
           labelDiv.setAttribute('id', 'test-case-stub-name');
+          
 
           var label = document.createElement('label');
           label.setAttribute('for', 'inputParameters'); // 'for' should match the 'id' of the input it is associated with
@@ -81,8 +111,9 @@
           inputParamsInput.setAttribute('type', 'text');
           inputParamsInput.setAttribute('class', 'form-control');
           inputParamsInput.setAttribute('placeholder', 'input parameters');
-          inputParamsInput.setAttribute('id', 'inputParameters'); // Ensure that this ID is unique for each test case
+          inputParamsInput.setAttribute('id', 'inputParameters'+i); // Ensure that this ID is unique for each test case
           inputParamsInput.setAttribute('required','');
+          inputParamsInput.setAttribute('name','inputParameters[]');
 
           inputDiv.appendChild(inputParamsInput);
 
@@ -94,15 +125,37 @@
           outputInput.setAttribute('type', 'text');
           outputInput.setAttribute('class', 'form-control');
           outputInput.setAttribute('placeholder', 'output');
-          outputInput.setAttribute('id', 'expectedOutput'); // Ensure that this ID is unique for each test case
+          outputInput.setAttribute('id', 'expectedOutput'+i); // Ensure that this ID is unique for each test case
           outputInput.setAttribute('required','');
+          outputInput.setAttribute('name', 'expectedOutput[]');
 
           outDiv.appendChild(outputInput);
+
+          
+          var remove_button_div = document.createElement('div');
+          
+          remove_button_div.setAttribute('class', 'col');
+
+          var remove_button = document.createElement('button');
+
+          remove_button.setAttribute('class', 'btn btn-danger btn-sm ');
+          remove_button.setAttribute('name','remove_button[]')
+          remove_button.textContent= "Remove";
+
+          //This will remove the added test case
+          remove_button.onclick = function(){ newTestCase.remove()};
+          
+          //remove_button.setAttribute('onclick', 'remove_added_test_case()');
+          
+          
+
+          remove_button_div.appendChild(remove_button);
 
           // Append the label and inputs to the wrapper div
           newTestCase.appendChild(labelDiv);
           newTestCase.appendChild(inputDiv);
           newTestCase.appendChild(outDiv);
+          newTestCase.appendChild(remove_button_div);
 
           // Append the new test case to the test cases container
           testCasesDiv.appendChild(newTestCase);
@@ -196,7 +249,7 @@
           <button style= "margin-top: 0.3vp; margin-bottom: 0.3vp;" type="button" class="btn btn-primary mb-2" onclick="addTestCase()">Add Test Case</button>
       </div>
       
-      <button  type="submit" class="btn btn-success">Create Challenge</button>
+      <button  style = "margin-top: 1vw;" type="submit" class="btn btn-success">Create Challenge</button>
   </form>
 </div>
 </body>

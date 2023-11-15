@@ -159,17 +159,21 @@ class App:
         """
 
         #fetch all the challenges
-        try:
-            challenges = SqlService.get_all_challenges()
-
-            #Sorting the challenges by their difficulty level
-            difficulty_mapping = {'Easy': 1, 'Medium': 2, 'Hard': 3}
-            challenges.sort(key=lambda x: difficulty_mapping.get(x.difficulty, 0))
-            #flash('Challenge added successfully!')
-            return render_template("challenges.html", challenges = challenges)
+        """
+         try:
+            
         except:
             print()
             #flash('Failed to add challenge.')
+        """
+        challenges = SqlService.get_all_challenges()
+
+        #Sorting the challenges by their difficulty level
+        difficulty_mapping = {'Easy': 1, 'Medium': 2, 'Hard': 3}
+        challenges.sort(key=lambda x: difficulty_mapping.get(x.difficulty, 0))
+        #flash('Challenge added successfully!')
+        return render_template("challenges.html", challenges = challenges)
+       
 
     def insert_challenge(self):
         """
@@ -388,7 +392,7 @@ class App:
             SqlService.update_challenge_difficulty_by_id(challenge_id,new_difficulty_level['newValue'])
             return jsonify({'message': 'ok'}), 200
          except:
-             return jsonify({'message': 'anutorized user'}), 403
+             return jsonify({'message': 'unautorized user'}), 403
         
              
          
