@@ -201,7 +201,7 @@ class TestSqlService(unittest.TestCase):
     def test_insert_challenge_comment(self, mock_call_proc):
         account_id, challenge_id, title, text = 1, 2, 'Comment Title', 'Comment Text'
         
-        # Set up a mock return value for call_stored_procedure (assuming it returns the new comment's ID)
+        # Set up a mock return value for call_stored_procedure
         mock_call_proc.return_value = 123  # Example comment ID
 
         result = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
@@ -231,7 +231,7 @@ class TestSqlService(unittest.TestCase):
         self.assertIsInstance(account, Moderator)
         self.assertEqual(account.username, 'moduser')
 
-        raw_account['usergroup_id'] = 3  # Assuming 3 represents User
+        raw_account['usergroup_id'] = 3  # 3 represents User
         account = SqlService.raw_account_to_account(raw_account)
         self.assertIsInstance(account, User)
         self.assertEqual(account.username, 'moduser')
@@ -254,26 +254,6 @@ class TestSqlService(unittest.TestCase):
         result_unrecognized = SqlService.raw_account_to_account(raw_account_unrecognized)
         self.assertIsNone(result_unrecognized)
 
-    
-
-    def test_raw_challenge_to_challenge(self):
-        raw_challenge = {
-            'id': 1,
-            'created_at': datetime.now(),
-            'account_id': 1,
-            'is_deleted': False,
-            'name': 'Foo',
-            'difficulty': 'Easy',
-            'description': 'Description',
-            'stub_name': 'foo',
-            'stub_block': '# TODO',
-            'time_allowed_sec': 30
-        }
-        challenge = SqlService.raw_challenge_to_challenge(raw_challenge)
-        self.assertIsInstance(challenge, Challenge)
-        self.assertEqual(challenge.name, 'Foo')
-        self.assertIsNone(SqlService.raw_challenge_to_challenge(None))
-    
     def test_raw_challenge_to_challenge(self):
         raw_challenge = {
             'id': 1,

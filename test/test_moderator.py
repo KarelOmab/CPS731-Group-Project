@@ -18,6 +18,3 @@ class TestModerator(unittest.TestCase):
     def test_str_representation(self):
         expected_str = "id:1, username:moderator, privileged_mode:True"
         self.assertEqual(str(self.moderator), expected_str)
-
-if __name__ == '__main__':
-    unittest.main()
