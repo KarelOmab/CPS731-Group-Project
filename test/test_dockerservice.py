@@ -13,7 +13,7 @@ class TestDockerService(unittest.TestCase):
         code = "def summm(x, y): return x + y"
         result, message = DockerService.validate_user_method(code, 'sum')
         self.assertFalse(result)
-        self.assertIn("Error! Your code must contain the required method", message)
+        self.assertEqual("Error! Your code must contain the required method: def sum", message)
 
 if __name__ == '__main__':
     unittest.main()
