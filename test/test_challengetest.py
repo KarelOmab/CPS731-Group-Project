@@ -1,5 +1,4 @@
 import unittest
-from datetime import datetime
 from classes.challenge.challengetest import ChallengeTest
 
 class TestChallengeTest(unittest.TestCase):
