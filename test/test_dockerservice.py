@@ -7,6 +7,10 @@ from classes.challenge.challengetest import ChallengeTest
 from io import StringIO
 import docker
 
+# The purpose of these mock tests is to do line coverage
+# These testers simply test line execution
+# We have a separate integration test file for actual (real data) processing
+
 class TestDockerService(unittest.TestCase):
     
     def test_validate_user_method_valid(self):
@@ -247,6 +251,76 @@ def sum(x, y):
         # Assert that the exception was caught and handled correctly
         self.assertIn('TestError: simulated container error', result['exception'])
         self.assertFalse(result['success'])
+
+    @patch('docker.from_env')
+    def test_execute_code_capture_prints(self, mock_docker_env):
+        # Setup mock Docker container and its exec_run return value
+        mock_container = MagicMock()
+        mock_container.exec_run.return_value = (0, b'Hello World\nRESULT: True')
+        mock_docker_env.return_value.containers.run.return_value = mock_container
+
+        # Dummy challenge and tests
+        challenge = Challenge(
+            id=1,
+            created_at=datetime.now(),
+            account_id=1,
+            is_deleted=False,
+            name="Some Challenge Name",
+            difficulty="Easy",
+            description="Some Challenge Description",
+            stub_name="def foo(x, y)",
+            stub_block="# TODO",
+            time_allowed_sec=20
+        )
+        tests = [ChallengeTest(
+            id=1,
+            challenge_id=1,
+            is_deleted=False,
+            test_input="6, 12",
+            test_output="18"
+        )]
+
+        # Call execute_code
+        user_code = "print('Hello World')"
+        result = DockerService.execute_code(challenge, tests, user_code)
+
+        # Assertions
+        self.assertIn('Hello World', result['print_outputs'])
+
+    @patch('docker.from_env')
+    def test_execute_code_passed_tests(self, mock_docker_env):
+        # Setup mock Docker container and its exec_run return value
+        mock_container = MagicMock()
+        mock_container.exec_run.return_value = (0, b'RESULT: 18')
+        mock_docker_env.return_value.containers.run.return_value = mock_container
+
+        # Dummy challenge and tests
+        challenge = Challenge(
+            id=1,
+            created_at=datetime.now(),
+            account_id=1,
+            is_deleted=False,
+            name="Some Challenge Name",
+            difficulty="Easy",
+            description="Some Challenge Description",
+            stub_name="def foo(x, y)",
+            stub_block="# TODO",
+            time_allowed_sec=20
+        )
+        tests = [ChallengeTest(
+            id=1,
+            challenge_id=1,
+            is_deleted=False,
+            test_input="6, 12",
+            test_output="18"
+        )]
+
+        # Call execute_code
+        user_code = "def foo(x, y):\n  return 18"
+        result = DockerService.execute_code(challenge, tests, user_code)
+
+        # Assertions
+        self.assertEqual(result['tests_passed'], 1)
 
         
 
