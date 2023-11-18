@@ -73,6 +73,3 @@ class TestChallenge(unittest.TestCase):
         # Test the challenge_tests getter and setter
         self.challenge.challenge_tests = ["test1", "test2"]
         self.assertListEqual(self.challenge.challenge_tests, ["test1", "test2"])
-
-if __name__ == '__main__':
-    unittest.main()

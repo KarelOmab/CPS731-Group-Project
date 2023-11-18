@@ -321,8 +321,3 @@ def sum(x, y):
 
         # Assertions
         self.assertEqual(result['tests_passed'], 1)
-
-        
-
-if __name__ == '__main__':
-    unittest.main()

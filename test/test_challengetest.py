@@ -36,6 +36,3 @@ class TestChallengeTest(unittest.TestCase):
         # Test the test_output getter and setter
         self.challenge_test.test_output = "11"
         self.assertEqual(self.challenge_test.test_output, "11")
-
-if __name__ == '__main__':
-    unittest.main()
