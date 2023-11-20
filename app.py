@@ -101,11 +101,11 @@ class App:
 
             # Hash the password using CryptoService
             hashed_password = CryptoService.hash_password(password)
-            result = SqlService.insert_account(usergroup='USERGROUP_USER', username=username, password=hashed_password, email=email_address)
+            result = SqlService.insert_account(usergroup=3, username=username, password=hashed_password, email=email_address)
 
             if result == 'Success':
-                flash('Registration successful. You can now log in.', 'success')
-                return redirect(url_for('index'))
+                    flash('Registration successful. You can now log in.', 'success')
+                    return redirect(url_for('index')), 200  # 200 OK for successful requests
             else:
                 flash('An error occurred during registration. Please try again later.', 'error')
                 return redirect(url_for('register'))
