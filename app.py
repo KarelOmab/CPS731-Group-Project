@@ -1,7 +1,8 @@
-from flask import Flask, render_template, session
+from flask import Flask, render_template, session, request, redirect, url_for
 import os
 from dotenv import load_dotenv
 from classes.util.sqlservice import SqlService
+from classes.util.cryptoservice import CryptoService
 
 class App:
     def __init__(self):
@@ -98,7 +99,15 @@ class App:
             A redirect to the 'index' route for a successful login, or a string 
             with an error message for a failed login attempt.
         """
-        
+        hashed_pwd = CryptoService.hash_password(request.form.get("password"))
+        user = SqlService.get_account_by_username_password(request.form.get("username"), hashed_pwd)
+        if user:
+            session['id'] = user.id
+            session['username'] = user.username
+            session['privileged_mode'] = user.privileged_mode
+            return redirect(url_for('index.html'))
+        else:
+            return "Invalid username or password"
 
     def logout(self):
         """
@@ -128,7 +137,7 @@ class App:
         Returns:
             An HTML page rendered from the 'login.html' template.
         """
-        pass
+        return render_template('login.html')
 
     def challenges(self):
         """
@@ -238,29 +247,28 @@ class App:
             The 'challenge.html' template rendered with the challenge details, tests, comments, and user
             submission data (if the user is logged in and has submission data).
         """
-        challenge_id = int(challenge_id)
         _challenge = SqlService.get_challenge_by_id(challenge_id)
         _tests = SqlService.get_challenge_tests_by_id_and_limit(challenge_id)
         _comments = SqlService.get_challenge_comments_by_id(challenge_id)
         challenge = {
-            "name": _challenge.name,
-            "difficulty": _challenge.difficulty,
-            "description": _challenge.description,
+            "name": _challenge.name(),
+            "difficulty": _challenge.difficulty(),
+            "description": _challenge.description(),
         },
         tests = []
         for test in _tests:
             tests.append({
-                "name": _challenge.stub_name,
-                "input": test.test_input,
-                "output": test.test_output,
+                "name": _challenge.stub_name(),
+                "input": test.test_input(),
+                "output": test.test_output(),
             })
         comments = []
         for comment in _comments:
             comments.append({
-                "title": comment.title,
-                "username": comment.username,
-                "text": comment.text,
-                "datetime": comment.created_at,
+                "title": comment.title(),
+                "username": comment.username(),
+                "text": comment.text(),
+                "datetime": comment.created_at(),
             })
         return render_template('challenge.html', challenge=challenge, tests=tests, comments=comments)
 
@@ -420,5 +428,6 @@ class App:
 
 if __name__ == '__main__':
     my_app = App()
+    
     my_app.run(debug=True)
     
