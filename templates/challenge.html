@@ -30,11 +30,10 @@
               // Check if the user entered something
               if (userInput !== null && userInput.trim() !== "") {
                   // Send the input to the server using a POST request
-                  fetch('/edit_challenge_difficulty/'+challenge_id, { // Replace with your actual endpoint
+                  fetch('/edit_challenge_difficulty/'+challenge_id, { 
                       method: 'POST',
                       headers: {
                           'Content-Type': 'application/json',
-                          // Include CSRF token header if needed for security
                       },
                       body: JSON.stringify({ 
                           newValue: userInput // Sending the data
@@ -62,11 +61,215 @@
               }
           });
         });
+
+        // JavaScript function to handle comment deletion
+        function deleteComment(commentId,challengeId) {
+          console.log("I am in a delete function");
+          console.log("comment_id is "+commentId);
+          console.log("challenge id is "+challengeId);
+
+        // Confirmation dialog before deletion
+        if (confirm('Are you sure you want to delete this comment?')) {
+            // Proceed with deletion.
+            fetch('/delete_comment/' + challengeId, { 
+              method: 'POST',
+              headers: {
+                          'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ 
+                          challenge_id: challengeId,
+                          comment_id: commentId  // Sending the data
+                      })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // successful, we are going to refresh the page
+                        location.reload(); // Or refresh the page to reflect the changes
+                    } else {
+                        // Handle errors
+                        alert('There was a problem deleting the comment.');
+                    }
+                })
+                .catch(error => {
+                    // Handle any other errors
+                    console.error('Error:', error);
+                });
+        }
+      }
+
+        // JavaScript function to handle editing challenge name
+        function editChallengeName(challengeId) {
+          console.log("I am in a delete function");
+          
+          console.log("challenge id is "+challengeId);
+
+        // Confirmation dialog before deletion
+        if (userInput = prompt("Please enter the new challenge name:")) {
+            // Proceed with editing challenge name
+            fetch('/edit_challenge_name/' + challengeId, { 
+              method: 'POST',
+              headers: {
+                          'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ 
+                          new_challenge_name: userInput  // Sending the data
+                      })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // successful, we are going to refresh the page
+                        console.log("Success 200 returned");
+                        location.reload(); // Or refresh the page to reflect the changes
+                    } else {
+                        // Handle errors
+                        alert('There was a problem editing challenge name.');
+                    }
+                })
+                .catch(error => {
+                    // Handle any other errors
+                    console.error('Error:', error);
+                });
+        }
+      }
+       
+       // JavaScript function to handle editing challenge description
+       function editChallengeDiscription(challengeId) {
+          console.log("I am in a delete function");
+          
+          console.log("challenge id is "+challengeId);
+
+        // Confirmation dialog before deletion
+        if (userInput = prompt("Please enter the new challenge description:")) {
+            // Proceed with editing discription
+            fetch('/edit_challenge_description/' + challengeId, { 
+              method: 'POST',
+              headers: {
+                          'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ 
+                          new_challenge_discr: userInput  // Sending the data
+                      })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // successful, we are going to refresh the page
+                        console.log("Success 200 returned");
+                        location.reload(); // Or refresh the page to reflect the changes
+                    } else {
+                        // Handle errors
+                        alert('There was a problem editing challenge discription.');
+                    }
+                })
+                .catch(error => {
+                    // Handle any other errors
+                    console.error('Error:', error);
+                });
+        }
+      }
+
+      // JavaScript function to handle deleting a test case
+      function deleteTestCase(challengeId,testCaseId) {
+          console.log("I am in a delete function");
+          
+          console.log("The test case id is "+testCaseId);
+          console.log("The challenge id is "+challengeId);
+
+
+        // Confirmation dialog before deletion
+        if (confirm('Are you sure you want to delete this test case?')) {
+            // Proceed with adding test case
+            fetch('/delete_test_case/' + testCaseId, { 
+              method: 'POST',
+              headers: {
+                          'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ 
+                          challenge_id : challengeId  // Sending the data
+                      })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // successful, we are going to refresh the page
+                        console.log("Success 200 returned");
+                        location.reload(); // Or refresh the page to reflect the changes
+                    } else {
+                        // Handle errors
+                        alert('There was a problem deleting test cases.');
+                    }
+                })
+                .catch(error => {
+                    // Handle any other errors
+                    console.error('Error:', error);
+                });
+        }
+      }
+
+      // JavaScript function to handle editing challenge stub name
+      function editStubName(challengeId) {
+      
+        // getting user input for new stub name
+        if (userInput = prompt("Please enter the new challenge stub name:")) {
+            // Proceed with editing the stub name
+            fetch('/edit_challenge_stub-name/' + challengeId, { 
+              method: 'POST',
+              headers: {
+                          'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ 
+                          stub_name : userInput  // Sending the data
+                      })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // successful, we are going to refresh the page and display a flash message
+                        console.log("Success 200 returned");
+                        location.reload(); // Or refresh the page to reflect the changes
+                        showFlashMessage("Challenge stub name is updated successfully");
+                        fadeDiv();
+                        //alert("Challenge stub name is updated");
+                    } else {
+                        // Handle errors
+                        alert('There was a problem adding test cases.');
+                    }
+                })
+                .catch(error => {
+                    // Handle any other errors
+                    console.error('Error:', error);
+                });
+        }
+      }
+
+      function showFlashMessage(message) {
+        // Create the message element
+        var messageDiv = document.createElement('div');
+        messageDiv.className = 'flash-message'; // Add your custom class for styling
+        messageDiv.textContent = message;
+
+        // Append it to the flash message container
+        document.getElementById('flash-message-container').appendChild(messageDiv);
+
+        // Set a timeout to remove the flash message after 3000ms (3 seconds)
+        setTimeout(function() {
+          messageDiv.remove();
+        }, 3000);
+      }
+
+      function fadeDiv()
+      {
+        messageDiv.style.opacity = '0';
+
+        // Wait for the transition to finish before removing
+        setTimeout(function() {
+          messageDiv.remove();
+        }, 1000); // Should match
+      }
+
+      
     </script>
 
             
 
-   
+
 </head>
 <body class="d-flex flex-column h-100">
 {% include 'navbar.html' %}
@@ -78,13 +281,16 @@
   {% endif %}
 {% endwith %}
 <div class="container mt-3">
+  <div style = "padding: 10px; margin: 10px 0; text-align: center; " id="flash-message-container"></div>
+  
+  
   <div class="card">
       <div class="card-header">
-          <h2 class="card-title">{{ challenge.name }} <a href="/edit/description" class="btn btn-link">Edit</a></h2>
+          <h2 class="card-title">{{ challenge.name }}  <a id = "edit_challenge_name"   onclick="editChallengeName('{{challenge.id}}')" class="btn btn-link">Edit</a></h2>
       </div>
       <div class="card-body">
           <h5 class="card-title">Difficulty: {{ challenge.difficulty }} <a  id = 'edit-difficulty' name = '{{ challenge.id }}'  class="btn btn-link">Edit</a></h5>
-          <p class="card-text">Description: {{ challenge.description }} <a href="/edit/description" class="btn btn-link">Edit</a></p>
+          <p class="card-text">Description: {{ challenge.description }} <a  onclick="editChallengeDiscription('{{challenge.id}}')" class="btn btn-link">Edit</a></p>
           
           <!-- Challenge Examples -->
           <ul class="list-group mb-3">
@@ -99,7 +305,7 @@
                     <p style="display: inline;"> <i class="fas fa-arrow-right"></i></p>
                     <p style="display: inline;"> {{ test.test_output }}</p>
                   </div>
-                  <a href="/delete/example/{{ challenge.id }}" class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
+                  <a id = 'delete-test-case' name='{{ test.id }}'   onclick="deleteTestCase('{{challenge.id}}','{{test.id}}')"class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
                   
               </li>
               {% endfor %}
@@ -107,7 +313,7 @@
 
           <!-- Add Test Case -->
           <h4 class="mb-3">Add Test Case</h4>
-          <form action="/add/testcase" method="post">
+          <form action="{{ url_for('add_test_case', challenge_id=challenge.id) }}" method="post">
             <div class="form-row">
               <div class="form-group">
                 <label class = "stubLabel" for="stubName">{{ challenge.stub_name }}</label>
@@ -125,30 +331,100 @@
           </form>
 
           <!-- Code Stub -->
-          <h4 class="mb-3">Stub Name: <a href="/edit/difficulty" class="btn btn-link">Edit</a></h4>
+          <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}<a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a></h4>
           <h4 class="mb-3">Code Stub</h4>
-          <form action="/update/codestub" method="post">
+          <form action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
               <div class="form-group">
-                  <textarea class="form-control" id="codeStub" name="codeStub" rows="5"> {{ challenge.stub_block }}
+                  <textarea class="form-control" id="codeStub" name="stub-block" rows="5"> {{ challenge.stub_block }}
                   </textarea>
               </div>
               <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
           </form>
-
-          <h4 class="mb-3">Add a Comment</h4>
-          <form action="/add/comment" method="post">
+          <div>
+            <h4 class="mb-3">Submissions</h4>
+            <li class="list-group-item">
+              {% if not submissions %}
+              <p>No submissions yet</p>
+              {% endif%}
+  
+              {% if submissions %}
+              {% for solution in submissions %}
+              <div class="container my-4">
+             
+                    <div class="card-header">
+                        <!-- Display username and the creation date of the comment -->
+                        <strong>{{ challenge.name }}</strong> submitted {{ solution.created_at.strftime('%Y-%m-%d %H:%M:%S') }}n
+                    </div>
+                    <div class="card-body">
+                        <!-- Display the title of the comment -->
+                        <h5 class="card-title"> Execution time: {{ solution.exec_time }} seconds</h5>
+                        <h5 class="card-title"> Executed characters: {{ solution.exec_chars }} characters</h5>
+                        <!-- Display the text of the comment -->
+                        <p class="card-text">{{ solution.exec_src }}</p>
+                    </div>
+                    <!-- To allow modertator to delete -->
+                    <div class="card-footer text-end">
+                        <!-- Delete button (you may want to include a confirmation before deletion) -->
+                        <button class="btn btn-danger btn-sm" >Delete</button>
+                    </div>
+                </div>
+  
+              
+            </div>
+            {% endfor %}
+            {% endif%}
+  
+            </li>
+  
+          </div>
+         
+          <div style = "padding: 1vw;">
+            <h4 class="mb-3">Add a Comment</h4>
+          <form action="{{ url_for('submit_comment', challenge_id=challenge.id) }}" method="post">
             <div class="form-group">
               <label class = "comment-name" for="comment-name">Title</label>
               <input name = "comment-title" type="text" class="form-control" id="comment-title" placeholder="Comment Title" required>
               <label  for="comment-content">Comment</label>
-              <textarea class="form-control" id="codeStub" name="codeStub" rows="5" placeholder="Add your comment here"></textarea>
+              <textarea class="form-control" id="comment_content" name="comment-content" rows="5" placeholder="Add your comment here"></textarea>
             </div> 
             <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Comment</button>
           </form>
           <h4 class="mb-3">Comments</h4>
           <li class="list-group-item">
+            {% if not comments %}
             <p>No comments yet</p>
+            {% endif %}
+
+            {% if comments %}
+            {% for comment in comments %}
+            <div class="container my-4">
+              <!-- Check if the comment is not marked as deleted -->
+              {% if not comment.is_deleted %}
+              <div class="card">
+                  <div class="card-header">
+                      <!-- Display username and the creation date of the comment -->
+                      <strong>{{ comment.username }}</strong> commented on {{ comment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                  </div>
+                  <div class="card-body">
+                      <!-- Display the title of the comment -->
+                      <h5 class="card-title">{{ comment.title }}</h5>
+                      <!-- Display the text of the comment -->
+                      <p class="card-text">{{ comment.text }}</p>
+                  </div>
+                  <!-- To allow modertator to delete -->
+                  <div class="card-footer text-end">
+                      <!-- Delete button (you may want to include a confirmation before deletion) -->
+                      <button class="btn btn-danger btn-sm" onclick="deleteComment('{{ comment.id}}' , '{{challenge.id}}')">Delete</button>
+                  </div>
+              </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          {% endif%}
+            
           </li>
+        </div>
+          
 
       </div>
   </div>

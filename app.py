@@ -306,8 +306,13 @@ class App:
         challenge = SqlService.get_challenge_by_id(challenge_id)
         #Get the challenge test cases
         testcases = SqlService.get_challenge_tests_by_id(challenge_id)
+        comments = SqlService.get_challenge_comments_by_id(challenge_id)
+        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, 1)
 
-        return render_template('challenge.html', challenge=challenge, testcases=testcases)
+        print(f"challenge comments are {comments}")
+        print(f"challenge submissions are {submissions}")
+
+        return render_template('challenge.html', challenge=challenge, testcases=testcases, comments = comments, submissions = submissions)
 
     def submit_comment(self, challenge_id):
         """
@@ -329,9 +334,30 @@ class App:
             A redirect to the challenge page with a flash message indicating the outcome of the comment
             submission attempt.
         """
-        pass
-        
 
+        #once the session variable is set I am going to check if the user is looged in
+        #For now I am assuming the user id is 1
+
+        try:
+            comment_title = request.form['comment-title']
+            comment_content = request.form['comment-content']
+
+            #If the user enters an empty title or comment 
+            if(comment_title == None or comment_content == None):
+                return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+            
+            #Inserting the comment to the challenge
+            else:
+                insert_id = SqlService.insert_challenge_comment(1,challenge_id, comment_title, comment_content)
+                print(f"The comment title is {comment_title}")
+                print(f"The comment content is {comment_content}")
+                print(f'The insert id is {insert_id}')
+
+        except RuntimeError as err:
+            print(f"Error! {err}")
+            return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+
+        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
     def delete_challenge(self, challenge_id):
         """
         Delete a challenge from the database if the user has privileged access.
@@ -372,7 +398,21 @@ class App:
             A JSON response indicating success or failure of the update operation. If the user does not
             have the necessary permissions, it returns a 403 status code and a failure message.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            #return_value = SqlService.update_challenge_name_by_id(challenge_id)
+            new_challenge_name = request.json
+            SqlService.update_challenge_name_by_id(challenge_id, new_challenge_name['new_challenge_name'])
+            return jsonify({'message': 'ok'}), 200
+        except RuntimeError as err:
+            print(f"Error occurred while updating challenge name! {err}")
+        
+        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+
+
+        
 
     def edit_challenge_difficulty(self, challenge_id):
          """
@@ -409,7 +449,20 @@ class App:
             A JSON response indicating the outcome of the update with an HTTP status code of 200
             for success or 403 for permission denied. Flash messages provide feedback to the user.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            #return_value = SqlService.update_challenge_name_by_id(challenge_id)
+            new_challenge_discr = request.json
+            SqlService.update_challenge_description_by_id(challenge_id, new_challenge_discr['new_challenge_discr'])
+            return jsonify({'message': 'ok'}), 200
+        
+        except RuntimeError as err:
+            print(f"Error occurred while updating challenge name! {err}")
+        
+        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+
 
     def edit_challenge_stub_name(self, challenge_id):
         """
@@ -422,7 +475,20 @@ class App:
             A JSON response indicating the success status of the update, with an HTTP status code of 200
             for success or 403 for permission denied. Flash messages provide feedback on the action's outcome.
         """
-        pass
+         #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            #return_value = SqlService.update_challenge_name_by_id(challenge_id)
+            new_stub_name = request.json
+            SqlService.update_challenge_stub_name_by_id(challenge_id, new_stub_name['stub_name'])
+            return jsonify({'message': 'ok'}), 200
+        
+        except RuntimeError as err:
+            print(f"Error occurred while updating challenge name! {err}")
+        
+        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+
 
     def edit_challenge_stub_block(self, challenge_id):
         """
@@ -435,7 +501,21 @@ class App:
             A JSON response indicating success or failure of the update, with corresponding flash messages
             and an HTTP status code of 200 for success or 403 for permission denied.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            new_stub_block = request.form['stub-block']
+
+            SqlService.update_challenge_stub_block_by_id(challenge_id, new_stub_block)
+            #returning an Okay message to the caller
+            return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
+            #return jsonify({'message': 'ok'}), 200
+
+        except RuntimeError as err:
+            print(f"Error occurred adding new test case. {err}")
+        
+        return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
 
     def add_test_case(self, challenge_id):
         """
@@ -448,9 +528,26 @@ class App:
             A JSON response indicating whether the test case was successfully added, with an HTTP status code
             of 200 for success or 403 for permission denied. Flash messages provide user feedback.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
 
-    def delete_test_case(self, challenge_id, test_case_id):
+        try:
+            input_parameter = request.form['inputParameters[]']
+            output_parameter = request.form['expectedOutput[]']
+
+            SqlService.insert_challenge_test(challenge_id, input_parameter, output_parameter)
+
+            #returning an Okay message to the caller
+            #return jsonify({'message': 'ok'}), 200
+
+           
+        except RuntimeError as err:
+            print(f"Error occurred adding new test case. {err}")
+        
+        return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
+        
+
+    def delete_test_case(self, test_case_id): #, challenge_id
         """
         Deletes a test case from a challenge if the user has the necessary privileges.
 
@@ -462,9 +559,24 @@ class App:
             A JSON response indicating the success or failure of the deletion, with an HTTP status code of 200
             for success or 403 for permission denied. Flash messages provide feedback on the outcome.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
 
-    def delete_comment(self, challenge_id, comment_id):
+        try:
+            json_data = request.json
+            print(f"json_data is ")
+            print(json_data)
+            SqlService.delete_challenge_test_by_id_and_challenge_id(test_case_id, json_data['challenge_id'])
+            return jsonify({'message': 'ok'}), 200
+
+        except RuntimeError as err:
+            print(f"Error has occurred while deleting a test case. {err}")
+
+        redirect(url_for('generic_challenge', challenge_id=json_data['challenge_id']))
+        
+        
+
+    def delete_comment(self, challenge_id): #, comment_id
         """
         Deletes a comment from a challenge if the user has privileged access.
 
@@ -476,7 +588,23 @@ class App:
             A JSON response indicating the outcome of the deletion attempt, with an HTTP status code of 200
             for success or 403 for permission denied. Flash messages provide feedback to the user.
         """
-        pass
+
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            data = request.json
+
+            print(f"New difficulty level received {data}")
+            SqlService.delete_challenge_comment_by_id_and_challenge_id(data['comment_id'], data['challenge_id'])
+
+            #returning an Okay message to the caller
+            return jsonify({'message': 'ok'}), 200
+            
+        except RuntimeError as err:
+            print(f'Error Deleting Comment! {err}')
+        return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
+
         
     def run(self, **kwargs):
         self.app.run(**kwargs)
