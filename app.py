@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, session
 import os
 from dotenv import load_dotenv
 from classes.util.sqlservice import SqlService
@@ -98,7 +98,7 @@ class App:
             A redirect to the 'index' route for a successful login, or a string 
             with an error message for a failed login attempt.
         """
-        pass
+        
 
     def logout(self):
         """
