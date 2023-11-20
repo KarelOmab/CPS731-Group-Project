@@ -13,8 +13,16 @@
                     <a class="nav-link" href="/challenges">Challenges</a>
                 </li>
             </ul>
+            {% if 'username' in session %}
+            <span class="navbar-text">
+                <a class="nav-link" href="/logout">Logout ({{ session['username'] }})</a>
+            </span>
+            {% else %}
             <span class="navbar-text">
                 <a class="nav-link" href="/login">Login</a>
             </span>
+            {% endif %}
         </div>
+
+            
     </nav>

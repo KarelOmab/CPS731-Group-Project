@@ -17,7 +17,7 @@
         <div class="row">
             <div class="col-md-6 offset-md-3">
                 <h2 class="mt-5">Login</h2>
-                <form method="POST" action="/login">
+                <form method="POST" action="{{ url_for('submit_login') }}">
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input type="text" class="form-control" id="username" name="username" required>
