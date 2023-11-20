@@ -1,5 +1,7 @@
 from flask import Flask, render_template
 from flask import request, redirect, url_for
+from flask import flash
+from classes.util.cryptoservice import CryptoService
 import os
 from dotenv import load_dotenv
 
@@ -51,7 +53,7 @@ class App:
         Returns:
             A rendered template of 'register.html' which is the page where new users can register an account.
         """
-        pass
+        return render_template('register.html')
 
     def register_user(self):
         """
@@ -76,7 +78,27 @@ class App:
             A rendered 'register.html' template with a message indicating the success
             or failure of the registration process.
         """
-        pass
+        if request.method == 'POST':
+            # Extract form data
+            first_name = request.form.get('first_name')
+            last_name = request.form.get('last_name')
+            email_address = request.form.get('email_address')
+            username = request.form.get('username')
+            password = request.form.get('password')
+            confirm_password = request.form.get('confirm_password')
+
+
+            # Validate form data (add more validation as needed)
+            if not all([first_name, last_name, email_address, username, password, confirm_password]):
+                flash('All fields are required.', 'error')
+                return redirect(url_for('register'))
+
+            if password != confirm_password:
+                flash('Password and confirm password do not match.', 'error')
+                return redirect(url_for('register'))
+
+            # Hash the password using CryptoService
+            hashed_password = CryptoService.hash_password(password)
 
     def submit_login(self):
         """
