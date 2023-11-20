@@ -1,3 +1,4 @@
+import hashlib
 class CryptoService:
     @staticmethod
     def hash_password(raw_string):
@@ -14,5 +15,6 @@ class CryptoService:
             str: A hexadecimal digest of the hash
 
         """
-        pass
-
+        m = hashlib.sha256()
+        m.update(raw_string.encode('utf-8'))
+        return  m.hexdigest()
