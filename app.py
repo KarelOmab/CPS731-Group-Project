@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from flask import request, redirect, url_for
 from flask import flash
+from flask import jsonify
 from classes.util.cryptoservice import CryptoService
 from classes.util.sqlservice import SqlService
 import os
@@ -58,7 +59,7 @@ class App:
         return render_template('register.html')
 
     def register_user(self):
-        """
+        """ 
         Register a new user in the system.
 
         This method handles a POST request to register a new user by extracting 
@@ -80,18 +81,20 @@ class App:
             A rendered 'register.html' template with a message indicating the success
             or failure of the registration process.
         """
+
         if request.method == 'POST':
-            # Extract form data
+        # Extract user input from the form
             first_name = request.form.get('first_name')
             last_name = request.form.get('last_name')
-            email_address = request.form.get('email_address')
+            email = request.form.get('email_address')
             username = request.form.get('username')
             password = request.form.get('password')
             confirm_password = request.form.get('confirm_password')
 
+            hashed_password = CryptoService.hash_password(password)
 
-            # Validate form data (add more validation as needed)
-            if not all([first_name, last_name, email_address, username, password, confirm_password]):
+            # Add your validation logic here if needed
+            if not all([first_name, last_name, email, username, password, confirm_password]):
                 flash('All fields are required.', 'error')
                 return redirect(url_for('register'))
 
@@ -99,17 +102,23 @@ class App:
                 flash('Password and confirm password do not match.', 'error')
                 return redirect(url_for('register'))
 
-            # Hash the password using CryptoService
-            hashed_password = CryptoService.hash_password(password)
-            result = SqlService.insert_account(usergroup=3, username=username, password=hashed_password, email=email_address)
+            # Call the method to insert the account into the database
+            result = SqlService.insert_account(usergroup=3, username=username, password=hashed_password, email=email)
 
+            # Check the result and display appropriate message
             if result == 'Success':
-                    flash('Registration successful. You can now log in.', 'success')
-                    return redirect(url_for('index')), 200  # 200 OK for successful requests
-            else:
-                flash('An error occurred during registration. Please try again later.', 'error')
-                return redirect(url_for('register'))
+                # Registration successful, redirect to a success page or login page
+                return redirect(url_for('index'))
+            elif result == 'Username in use':
+                # Display a message indicating that the username is already in use
+                return render_template('register.html', error_message='Username already in use')
+            elif result == 'Email in use':
+                # Display a message indicating that the email is already in use
+                return render_template('register.html', error_message='Email already in use')
 
+        # If the request method is not POST, redirect to the registration page
+        return redirect(url_for('register'))
+            
     def submit_login(self):
         """
         Process the login form submission and authenticate the user.
@@ -160,7 +169,7 @@ class App:
         Returns:
             An HTML page rendered from the 'login.html' template.
         """
-        pass
+        return render_template('login.html')
 
     def challenges(self):
         """
