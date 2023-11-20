@@ -1,5 +1,12 @@
 from dotenv import load_dotenv
 import os
+import mysql.connector
+from classes.account.user import User
+from classes.account.moderator import Moderator
+from classes.challenge.challenge import Challenge
+from classes.challenge.challengetest import ChallengeTest
+from classes.challenge.challengecomment import ChallengeComment
+from classes.challenge.challengesubmission import ChallengeSubmission
 
 # Load environment variables from .env file
 load_dotenv()
@@ -23,7 +30,13 @@ class SqlService:
         Returns:
             mysql.connector.connection.MySQLConnection: An instance of the connection object to the database.
         """
-        pass
+        config = {
+            "host": SqlService.HOST,
+            "user": SqlService.USER,
+            "password": SqlService.PASSWORD,
+            "database": SqlService.DATABASE
+        }
+        return mysql.connector.connect(**config)
 
     @staticmethod
     def execute_query(query, params=None):
@@ -42,7 +55,18 @@ class SqlService:
             list of dict or None: A list of dictionaries representing the fetched rows if the query
                                 is successful, or None if there is an error.
         """
-        pass
+        connection = SqlService.create_connection()
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute(query, params)
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return None
+        finally:
+            cursor.close()
+            connection.close()
 
     @staticmethod
     def execute_query_and_get_last_id(query, params):
@@ -60,7 +84,19 @@ class SqlService:
         Returns:
             int or None: The ID of the last row inserted by the query if successful, or None if there is an error.
         """
-        pass
+        connection = SqlService.create_connection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute(query, params)
+            connection.commit()
+            return cursor.lastrowid
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            connection.rollback()
+            return None
+        finally:
+            cursor.close()
+            connection.close()
 
     @staticmethod
     def call_stored_procedure(proc_name, params=(), fetchone=False, update=False, delete=False):
@@ -86,7 +122,28 @@ class SqlService:
                                     - True if an 'update' or 'delete' was performed.
                                     - None if there is an error.
         """
-        pass
+        connection = SqlService.create_connection()
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.callproc(proc_name, params)
+            connection.commit()
+            if fetchone:
+                for result in cursor.stored_results():
+                    return result.fetchone()
+            elif update or delete:
+                return True
+            else:
+                results = []
+                for result in cursor.stored_results():
+                    results.extend(result.fetchall())
+                return results
+        except mysql.connector.Error as err:
+            #print(f"Error: {err}")
+            connection.rollback()
+            return None
+        finally:
+            cursor.close()
+            connection.close()
 
     @staticmethod
     def raw_account_to_account(raw_account):
@@ -118,7 +175,24 @@ class SqlService:
         Notes:
         - The usergroup IDs are hardcoded within the method. USERGROUP_MOD corresponds to moderators, and USERGROUP_USER corresponds to regular users.
         """
-        pass
+        if not raw_account:
+            return None
+        
+        account_id = raw_account['id']
+        created_at = raw_account['created_at']
+        usergroup_id = raw_account['usergroup_id']
+        username = raw_account['username']
+        email = raw_account['email']
+
+        USERGROUP_MOD = 2
+        USERGROUP_USER = 3
+
+        if usergroup_id == USERGROUP_MOD:
+            return Moderator(account_id, username)
+        elif usergroup_id == USERGROUP_USER:
+            return User(account_id, username)
+
+        return None
     
     @staticmethod
     def raw_challenge_to_challenge(raw_challenge):
@@ -147,7 +221,21 @@ class SqlService:
             'time_allowed_sec': 60
         }
         """
-        pass
+        if not raw_challenge:
+            return None
+        
+        challenge_id = raw_challenge['id']
+        created_at = raw_challenge['created_at']
+        account_id = raw_challenge['account_id']
+        is_deleted = raw_challenge['is_deleted']
+        name = raw_challenge['name']
+        difficulty = raw_challenge['difficulty']
+        description = raw_challenge['description']
+        stub_name = raw_challenge['stub_name']
+        stub_block = raw_challenge['stub_block']
+        time_allowed_sec = raw_challenge['time_allowed_sec']
+        challenge = Challenge(challenge_id, created_at, account_id, is_deleted, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
+        return challenge
     
     @staticmethod
     def raw_test_to_test(raw_test):
@@ -171,7 +259,13 @@ class SqlService:
             'output': 'Expected output'
         }
         """
-        pass
+        test_id = raw_test['id']
+        challenge_id = raw_test['challenge_id']
+        is_deleted = raw_test['is_deleted']
+        test_input = raw_test['input']
+        test_output = raw_test['output']
+        test = ChallengeTest(test_id, challenge_id, is_deleted, test_input, test_output)
+        return test
     
     @staticmethod
     def raw_comment_to_comment(raw_comment):
@@ -198,7 +292,16 @@ class SqlService:
             'username': 'johndoe'
         }
         """
-        pass
+        comment_id = raw_comment['id']
+        created_at = raw_comment['created_at']
+        account_id = raw_comment['account_id']
+        is_deleted = raw_comment['is_deleted']
+        challenge_id = raw_comment['challenge_id']
+        title = raw_comment['title']
+        text = raw_comment['text']
+        username = raw_comment['username']
+        comment = ChallengeComment(comment_id, created_at, account_id, is_deleted, challenge_id, title, text, username)
+        return comment
     
     @staticmethod
     def raw_submission_to_submission(raw_submission):
@@ -224,7 +327,15 @@ class SqlService:
             'exec_src': 'print("Hello World")'
         }
         """
-        pass
+        submission_id = raw_submission['id']
+        created_at = raw_submission['created_at']
+        challenge_id = raw_submission['challenge_id']
+        account_id = raw_submission['account_id']
+        exec_time = raw_submission['exec_time']
+        exec_chars = raw_submission['exec_chars']
+        exec_src = raw_submission['exec_src']
+        submission = ChallengeSubmission(submission_id, created_at, challenge_id, account_id, exec_time, exec_chars, exec_src)
+        return submission
 
     @staticmethod
     def insert_account(usergroup, username, password, email):
@@ -241,10 +352,9 @@ class SqlService:
             email (str): The email address for the account.
 
         Returns:
-            The result of the stored procedure execution, the ID of the
-            account if successful.
+            'Success' message, 'Username in use' message or 'Email in use' message
         """
-        pass
+        return SqlService.call_stored_procedure("InsertAccount", params=(usergroup, username, password, email))
 
     @staticmethod
     def insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec):
@@ -268,7 +378,7 @@ class SqlService:
             The result of the stored procedure execution, the ID of the
             inserted challenge if successful.
         """
-        pass
+        return SqlService.call_stored_procedure("InsertChallenge", params=(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec))
 
     @staticmethod
     def insert_challenge_test(challenge_id, input_data, output_data):
@@ -287,7 +397,7 @@ class SqlService:
             The result of the stored procedure execution, the ID of the
             inserted challenge test if successful.
         """
-        pass
+        return SqlService.call_stored_procedure("InsertChallengeTest", params=(challenge_id, input_data, output_data))
 
     @staticmethod
     def insert_challenge_comment(account_id, challenge_id, title, text):
@@ -307,7 +417,7 @@ class SqlService:
             The result of the stored procedure execution, the ID of the
             inserted challenge comment if successful.
         """
-        pass
+        return SqlService.call_stored_procedure("InsertChallengeComment", params=(account_id, challenge_id, title, text))
 
     @staticmethod
     def insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src):
@@ -329,7 +439,7 @@ class SqlService:
             The result of the stored procedure execution, the ID of the submission
             if successful.
         """
-        pass
+        return SqlService.call_stored_procedure("InsertChallengeSubmission", params=(challenge_id, account_id, exec_time, exec_chars, exec_src))
 
     @staticmethod
     def get_account_by_username_password(username, password):
@@ -348,7 +458,9 @@ class SqlService:
             A structured account object if the retrieval is successful, or None if no matching
             account is found or if an error occurs.
         """
-        pass
+        raw_account = SqlService.call_stored_procedure("GetAccountByUsernameAndPassword", params=(username, password), fetchone=True)
+        account = SqlService.raw_account_to_account(raw_account)
+        return account
     
     @staticmethod
     def get_all_challenges():
@@ -362,7 +474,12 @@ class SqlService:
         Returns:
             A list of challenge objects representing all challenges in the database.
         """
-        pass
+        raw_challenges = SqlService.call_stored_procedure("GetAllChallenges")
+        challenges = []
+        for raw_challenge in raw_challenges:
+            challenge = SqlService.raw_challenge_to_challenge(raw_challenge)
+            challenges.append(challenge)
+        return challenges
 
 
     @staticmethod
@@ -380,7 +497,29 @@ class SqlService:
         Returns:
             A challenge object corresponding to the specified ID or None if not found.
         """
-        pass
+        raw_challenge = SqlService.call_stored_procedure("GetChallengeById", params=(id, ), fetchone=True)
+        challenge = SqlService.raw_challenge_to_challenge(raw_challenge)
+        return challenge
+    
+    @staticmethod
+    # get a specific challenge test
+    def get_challenge_test_by_id(challenge_test_id):
+        """
+        Retrieves a specific test case for a given challenge test ID.
+
+        Calls the 'GetChallengeTestById' stored procedure with the challenge test ID to fetch
+        the associated test case. The test case data is transformed into a structured
+        test object.
+
+        Args:
+            challenge_test_id (int): The unique identifier for the challenge test whose test cases is to be retrieved.
+
+        Returns:
+            A test object for the specified challenge.
+        """
+        raw_test = SqlService.call_stored_procedure("GetChallengeTestById", params=(challenge_test_id, ), fetchone=True)
+        test = SqlService.raw_test_to_test(raw_test)
+        return test
 
     @staticmethod
     # unlimited version
@@ -398,7 +537,15 @@ class SqlService:
         Returns:
             A list of test objects for the specified challenge.
         """
-        pass
+        raw_tests = SqlService.call_stored_procedure("GetChallengeTestsById", params=(id, ))
+        if not raw_tests:
+            return None
+        
+        tests = []
+        for raw_test in raw_tests:
+            test = SqlService.raw_test_to_test(raw_test)
+            tests.append(test)
+        return tests
 
     @staticmethod
     def get_challenge_tests_by_id_and_limit(id):
@@ -415,7 +562,31 @@ class SqlService:
         Returns:
             A list of test objects, limited to a predefined number, for the specified challenge.
         """
-        pass
+        MY_LIMIT = 5
+        raw_tests = SqlService.call_stored_procedure("GetChallengeTestsByIdAndLimit", params=(id, MY_LIMIT))
+        tests = []
+        for raw_test in raw_tests:
+            test = SqlService.raw_test_to_test(raw_test)
+            tests.append(test)
+        return tests
+    
+    @staticmethod
+    def get_challenge_comment_by_id(comment_id):
+        """
+        Retrieves all specific comment for a specific challenge by its ID.
+
+        Invokes the 'GetChallengeCommentById' stored procedure to
+        obtain a specific comment that is then turned into a structured comment object.
+
+        Args:
+            comment_id (int): The unique identifier for the challenge comment to be retrieved.
+
+        Returns:
+            A comment object for the specified challenge.
+        """
+        raw_comment = SqlService.call_stored_procedure("GetChallengeCommentById", params=(comment_id, ), fetchone=True)
+        comment = SqlService.raw_comment_to_comment(raw_comment)
+        return comment
 
     @staticmethod
     def get_challenge_comments_by_id(id):
@@ -432,7 +603,34 @@ class SqlService:
         Returns:
             A list of comment objects for the specified challenge.
         """
-        pass
+        raw_comments = SqlService.call_stored_procedure("GetChallengeCommentsById", params=(id, ))
+        if not raw_comments:
+            return None
+        
+        comments = []
+        for raw_comment in raw_comments:
+            comment = SqlService.raw_comment_to_comment(raw_comment)
+            comments.append(comment)
+        return comments
+    
+    @staticmethod
+    def get_challenge_submission_by_id(submission_id):
+        """
+        Retrieves a specific submission for a challenge.
+
+        This method calls the 'GetChallengeSubmissionById' stored procedure,
+        passing the submission ID to fetch the specified submission.
+        It then converts each raw submission data into a structured submission object.
+
+        Args:
+            challesubmission_idnge_id (int): The ID of the submission that is sought.
+
+        Returns:
+            A submission objects corresponding to the specified submission_id.
+        """
+        raw_submission = SqlService.call_stored_procedure("GetChallengeSubmissionById", params=(submission_id, ), fetchone=True)
+        submission = SqlService.raw_submission_to_submission(raw_submission)
+        return submission
 
     @staticmethod
     def get_challenge_submissions_by_id_and_account_id(challenge_id, account_id):
@@ -450,7 +648,15 @@ class SqlService:
         Returns:
             A list of submission objects corresponding to the specified challenge and account.
         """
-        pass
+        raw_submissions = SqlService.call_stored_procedure("GetChallengeSubmissionsByIdAndAccountId", params=(challenge_id, account_id))
+        if not raw_submissions:
+            return None
+        
+        submissions = []
+        for raw_submission in raw_submissions:
+            submission = SqlService.raw_submission_to_submission(raw_submission)
+            submissions.append(submission)
+        return submissions
 
     @staticmethod
     def update_challenge_name_by_id(id, name):
@@ -466,7 +672,7 @@ class SqlService:
         Returns:
         - The result of the stored procedure execution which may contain information about the success or failure of the update operation.
         """
-        pass
+        return SqlService.call_stored_procedure("UpdateChallengeNameById", params=(id, name), update=True)
 
     @staticmethod
     def update_challenge_difficulty_by_id(id, difficulty):
@@ -482,6 +688,7 @@ class SqlService:
         Returns:
         - The outcome of the stored procedure, indicating the update status.
         """
+        return SqlService.call_stored_procedure("UpdateChallengeDifficultyById", params=(id, difficulty), update=True)
 
     @staticmethod
     def update_challenge_description_by_id(id, description):
@@ -498,7 +705,7 @@ class SqlService:
         Returns:
         - The result of the stored procedure execution, typically a confirmation of the update.
         """
-        pass
+        return SqlService.call_stored_procedure("UpdateChallengeDescriptionById", params=(id, description), update=True)
 
     @staticmethod
     def update_challenge_stub_name_by_id(id, name):
@@ -512,7 +719,7 @@ class SqlService:
         Returns:
         - The result of the stored procedure execution, which is an indicator of success or failure.
         """
-        pass
+        return SqlService.call_stored_procedure("UpdateChallengeStubNameById", params=(id, name), update=True)
 
     @staticmethod
     def update_challenge_stub_block_by_id(id, stub_block):
@@ -526,8 +733,59 @@ class SqlService:
         Returns:
         - A confirmation of the update from the stored procedure's result.
         """
-        pass
+        return SqlService.call_stored_procedure("UpdateChallengeStubBlockById", params=(id, stub_block), update=True)
 
+    @staticmethod
+    def update_challenge_is_deleted_by_id(id, is_deleted):
+        """
+        Updates the is_deleted of a challenge based on its unique identifier.
+
+        This method invokes a stored procedure to update the is_deleted of a challenge in the database. 
+        It uses the challenge's unique ID to locate the record and update its is_deleted to the provided value.
+
+        Parameters:
+        - id (int): The unique identifier of the challenge.
+        - is_deleted (int): The new is_deleted to update the challenge with.
+
+        Returns:
+        - True
+        """
+        return SqlService.call_stored_procedure("UpdateChallengeIsDeletedById", params=(id, is_deleted), update=True)
+    
+    @staticmethod
+    def update_challenge_test_is_deleted_by_id(id, is_deleted):
+        """
+        Updates the is_deleted of a challenge test based on its unique identifier.
+
+        This method invokes a stored procedure to update the is_deleted of a challenge test in the database. 
+        It uses the challenge's unique ID to locate the record and update its is_deleted to the provided value.
+
+        Parameters:
+        - id (int): The unique identifier of the challenge test.
+        - is_deleted (int): The new is_deleted to update the challenge test with.
+
+        Returns:
+        - True
+        """
+        return SqlService.call_stored_procedure("UpdateChallengeTestIsDeletedById", params=(id, is_deleted), update=True)
+    
+    @staticmethod
+    def update_challenge_comment_is_deleted_by_id(id, is_deleted):
+        """
+        Updates the is_deleted of a challenge comment based on its unique identifier.
+
+        This method invokes a stored procedure to update the is_deleted of a challenge comment in the database. 
+        It uses the challenge's unique ID to locate the record and update its is_deleted to the provided value.
+
+        Parameters:
+        - id (int): The unique identifier of the challenge comment.
+        - is_deleted (int): The new is_deleted to update the challenge comment with.
+
+        Returns:
+        - True
+        """
+        return SqlService.call_stored_procedure("UpdateChallengeCommentIsDeletedById", params=(id, is_deleted), update=True)
+    
     @staticmethod
     def delete_challenge_by_id(id):
         """
@@ -541,7 +799,7 @@ class SqlService:
         Returns:
         - An indicator from the database operation about the success or failure of the deletion.
         """
-        pass
+        return SqlService.call_stored_procedure("DeleteChallengeById", params=(id, ), delete=True)
 
     @staticmethod
     def delete_challenge_test_by_id_and_challenge_id(challenge_test_id, challenge_id):
@@ -555,7 +813,7 @@ class SqlService:
         Returns:
         - An outcome from the database procedure that may confirm deletion or report an error.
         """
-        pass
+        return SqlService.call_stored_procedure("DeleteChallengeTestByIdAndChallengeId", params=(challenge_test_id, challenge_id), delete=True)
 
     @staticmethod
     def delete_challenge_comment_by_id_and_challenge_id(comment_id, challenge_id):
@@ -569,5 +827,55 @@ class SqlService:
         Returns:
         - The result of the stored procedure which may be a success or error message.
         """
-        pass
+        return SqlService.call_stored_procedure("DeleteChallengeCommentByIdAndChallengeId", params=(comment_id, challenge_id), delete=True)
+    
+    @staticmethod
+    def purge_account_by_username(username):
+        """
+        Wipes an account record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - username (str): The username of the account to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeAccountByUsername", params=(username,), delete=True)
+    
+    @staticmethod
+    def purge_challenge_by_id(challenge_id):
+        """
+        Wipes a challenge record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - challenge_id (id): The id of the challenge to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeChallengeById", params=(challenge_id,), delete=True)
+    
+    @staticmethod
+    def purge_challenge_test_by_id(challenge_test_id):
+        """
+        Wipes a challenge test record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - challenge_test_id (id): The id of the challenge test to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeChallengeTestById", params=(challenge_test_id,), delete=True)
+    
+    @staticmethod
+    def purge_challenge_comment_by_id(challenge_comment_id):
+        """
+        Wipes a challenge comment record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - challenge_comment_id (id): The id of the challenge comment to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeChallengeCommentById", params=(challenge_comment_id,), delete=True)
+    
+    @staticmethod
+    def purge_challenge_submission_by_id(challenge_submission_id):
+        """
+        Wipes a challenge submission record from the database - used for unit test cleanup purposes.
+
+        Parameters:
+        - challenge_submission_id (id): The id of the challenge submission to be wiped.
+        """
+        return SqlService.call_stored_procedure("PurgeChallengeSubmissionById", params=(challenge_submission_id,), delete=True)
 

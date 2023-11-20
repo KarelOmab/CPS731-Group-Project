@@ -7,6 +7,7 @@ dependencies = [
     "mysql-connector-python",
     "python-dotenv",
     "docker",
+    "pip install coverage"
 ]
 
 def install(package):

@@ -2,6 +2,7 @@ from flask import Flask, render_template
 from flask import request, redirect, url_for
 from flask import flash
 from classes.util.cryptoservice import CryptoService
+from classes.util.sqlservice import SqlService
 import os
 from dotenv import load_dotenv
 
@@ -34,8 +35,9 @@ class App:
         self.app.add_url_rule('/edit_challenge_stub-name/<int:challenge_id>', 'edit_challenge_stub_name', self.edit_challenge_stub_name, methods=['POST'])
         self.app.add_url_rule('/edit_challenge_stub-block/<int:challenge_id>', 'edit_challenge_stub_block', self.edit_challenge_stub_block, methods=['POST'])
         self.app.add_url_rule('/add_test_case/<int:challenge_id>', 'add_test_case', self.add_test_case, methods=['POST'])
-        self.app.add_url_rule('/delete_test_case/<int:test_case_id>', 'delete_test_case', self.delete_test_case, methods=['POST'])
-        self.app.add_url_rule('/delete_comment/<int:challenge_id>', 'delete_comment', self.delete_comment, methods=['POST'])
+        self.app.add_url_rule('/delete-test-case/<int:challenge_id>/<int:test_case_id>', 'delete_test_case', self.delete_test_case, methods=['POST'])
+        self.app.add_url_rule('/delete-comment/<int:challenge_id>/<int:comment_id>', 'delete_comment', self.delete_comment, methods=['POST'])
+
 
     def index(self):
         """
@@ -99,6 +101,14 @@ class App:
 
             # Hash the password using CryptoService
             hashed_password = CryptoService.hash_password(password)
+            result = SqlService.insert_account(usergroup='USERGROUP_USER', username=username, password=hashed_password, email=email_address)
+
+            if result == 'Success':
+                flash('Registration successful. You can now log in.', 'success')
+                return redirect(url_for('index'))
+            else:
+                flash('An error occurred during registration. Please try again later.', 'error')
+                return redirect(url_for('register'))
 
     def submit_login(self):
         """

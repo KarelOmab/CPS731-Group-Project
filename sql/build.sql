@@ -11,7 +11,7 @@
  Target Server Version : 100428 (10.4.28-MariaDB)
  File Encoding         : 65001
 
- Date: 05/11/2023 15:13:43
+ Date: 13/11/2023 22:58:58
 */
 
 SET NAMES utf8mb4;
@@ -33,8 +33,10 @@ CREATE TABLE `account` (
   UNIQUE KEY `unique_username` (`username`),
   UNIQUE KEY `unique_email` (`email`),
   KEY `fk_usergroup_id` (`usergroup_id`),
-  CONSTRAINT `fk_usergroup_id` FOREIGN KEY (`usergroup_id`) REFERENCES `usergroup` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `fk_usergroup_id` FOREIGN KEY (`usergroup_id`) REFERENCES `usergroup` (`id`),
+  CONSTRAINT `chk_non_empty_username` CHECK (`username` <> ''),
+  CONSTRAINT `chk_non_empty_password` CHECK (`password` <> '')
+) ENGINE=InnoDB AUTO_INCREMENT=158 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Records of account
@@ -62,14 +64,15 @@ CREATE TABLE `challenge` (
   `time_allowed_sec` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_account_id` (`account_id`),
-  CONSTRAINT `fk_account_id` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `fk_account_id` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
+  CONSTRAINT `chk_non_empty_name` CHECK (`name` <> '')
+) ENGINE=InnoDB AUTO_INCREMENT=153 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Records of challenge
 -- ----------------------------
 BEGIN;
-INSERT INTO `challenge` (`id`, `created_at`, `account_id`, `is_deleted`, `name`, `difficulty`, `description`, `stub_name`, `stub_block`, `time_allowed_sec`) VALUES (1, '2023-10-09 19:21:58', 1, 0, 'This and That', 'Easy', 'Write a function named sum that takes two integers as arguments and returns their sum.', 'sum', '# a method that adds two numbers\ndef sum(x, y):\n    #Write your code here', 5);
+INSERT INTO `challenge` (`id`, `created_at`, `account_id`, `is_deleted`, `name`, `difficulty`, `description`, `stub_name`, `stub_block`, `time_allowed_sec`) VALUES (1, '2023-11-13 18:16:35', 1, 0, 'Sum', 'Easy', 'Write a function named sum that takes two integers a and b and returns their sum.', 'sum', 'def sum(a, b):', 3);
 INSERT INTO `challenge` (`id`, `created_at`, `account_id`, `is_deleted`, `name`, `difficulty`, `description`, `stub_name`, `stub_block`, `time_allowed_sec`) VALUES (2, '2023-10-09 20:03:36', 1, 0, 'Biggest Number', 'Easy', 'Write a function named max_integer that takes a list of integers as an argument and returns the maximum element in the list.', 'max_integer', 'def max_integer(lst):\r\n	# Write your code here', 5);
 INSERT INTO `challenge` (`id`, `created_at`, `account_id`, `is_deleted`, `name`, `difficulty`, `description`, `stub_name`, `stub_block`, `time_allowed_sec`) VALUES (3, '2023-10-09 20:12:31', 1, 0, 'The Classic Buzz', 'Medium', 'Write a function named fizz_buzz that takes in an integer n. The function should return a list of strings where:\n- For multiples of three it returns \"Fizz\" instead of the number.\n- For the multiples of five, it returns \"Buzz\" instead of the number.\n- For numbers which are multiples of both three and five, it returns \"FizzBuzz\".\n- For numbers that aren\'t multiples of three or five, it returns the number as a string.', 'fizz_buzz', 'def fizz_buzz(n):\r\n	# Write your code here', 5);
 INSERT INTO `challenge` (`id`, `created_at`, `account_id`, `is_deleted`, `name`, `difficulty`, `description`, `stub_name`, `stub_block`, `time_allowed_sec`) VALUES (4, '2023-10-10 16:19:51', 1, 0, 'I Got The Power', 'Easy', 'Write a function named power that takes two integers (a and b) as arguments and returns a to the power of b', 'power', 'def power(a, b):\n    # Write your code here', 3.25);
@@ -92,12 +95,13 @@ CREATE TABLE `challenge_comment` (
   KEY `fk_challenge_id` (`challenge_id`),
   CONSTRAINT `fk_account_id2` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   CONSTRAINT `fk_challenge_id` FOREIGN KEY (`challenge_id`) REFERENCES `challenge` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=83 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Records of challenge_comment
 -- ----------------------------
 BEGIN;
+INSERT INTO `challenge_comment` (`id`, `created_at`, `account_id`, `is_deleted`, `challenge_id`, `title`, `text`) VALUES (1, '2023-11-13 19:29:15', 1, 0, 1, 'My Title', 'My Text');
 COMMIT;
 
 -- ----------------------------
@@ -117,12 +121,13 @@ CREATE TABLE `challenge_submission` (
   KEY `fk_challenge_id2` (`challenge_id`),
   CONSTRAINT `fk_account_id3` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   CONSTRAINT `fk_challenge_id2` FOREIGN KEY (`challenge_id`) REFERENCES `challenge` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Records of challenge_submission
 -- ----------------------------
 BEGIN;
+INSERT INTO `challenge_submission` (`id`, `created_at`, `challenge_id`, `account_id`, `exec_time`, `exec_chars`, `exec_src`) VALUES (66, '2023-11-13 19:34:13', 1, 1, 0.23, 27, 'def sum(a, b): return a + b');
 COMMIT;
 
 -- ----------------------------
@@ -136,13 +141,12 @@ CREATE TABLE `challenge_test` (
   `input` text NOT NULL,
   `output` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=137 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Records of challenge_test
 -- ----------------------------
 BEGIN;
-INSERT INTO `challenge_test` (`id`, `challenge_id`, `is_deleted`, `input`, `output`) VALUES (1, 1, 0, '1, 2', '3');
 INSERT INTO `challenge_test` (`id`, `challenge_id`, `is_deleted`, `input`, `output`) VALUES (2, 1, 0, '10, 20', '30');
 INSERT INTO `challenge_test` (`id`, `challenge_id`, `is_deleted`, `input`, `output`) VALUES (3, 1, 0, '15, 35', '50');
 INSERT INTO `challenge_test` (`id`, `challenge_id`, `is_deleted`, `input`, `output`) VALUES (4, 2, 0, '[1, 2, 3, 4, 5]', '5');
@@ -279,7 +283,21 @@ DROP PROCEDURE IF EXISTS `GetChallengeById`;
 delimiter ;;
 CREATE PROCEDURE `GetChallengeById`(IN in_id INT)
 BEGIN
-  SELECT * FROM challenge WHERE is_deleted=0 and id=in_id;
+  SELECT * FROM challenge WHERE id=in_id;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for GetChallengeCommentById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `GetChallengeCommentById`;
+delimiter ;;
+CREATE PROCEDURE `GetChallengeCommentById`(IN in_comment_id INT)
+BEGIN
+  SELECT cc.*, a.username FROM challenge_comment cc
+	JOIN account a ON a.id=cc.account_id
+	WHERE cc.id=in_comment_id;
 END
 ;;
 delimiter ;
@@ -299,6 +317,22 @@ END
 delimiter ;
 
 -- ----------------------------
+-- Procedure structure for GetChallengeSubmissionById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `GetChallengeSubmissionById`;
+delimiter ;;
+CREATE PROCEDURE `GetChallengeSubmissionById`(IN in_submission_id INT)
+BEGIN
+		SELECT cs.*
+    FROM `challenge_submission` cs
+    INNER JOIN `challenge` c ON c.`id` = cs.`challenge_id`
+    WHERE 
+		cs.`id` = in_submission_id;
+END
+;;
+delimiter ;
+
+-- ----------------------------
 -- Procedure structure for GetChallengeSubmissionsByIdAndAccountId
 -- ----------------------------
 DROP PROCEDURE IF EXISTS `GetChallengeSubmissionsByIdAndAccountId`;
@@ -313,6 +347,18 @@ BEGIN
 	  c.`id` = in_challenge_id AND
 		cs.`account_id` = in_account_id AND 
 		c.is_deleted=0;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for GetChallengeTestById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `GetChallengeTestById`;
+delimiter ;;
+CREATE PROCEDURE `GetChallengeTestById`(IN in_challenge_id INT)
+BEGIN
+  SELECT * FROM challenge_test WHERE id=in_challenge_id;
 END
 ;;
 delimiter ;
@@ -483,6 +529,66 @@ END
 delimiter ;
 
 -- ----------------------------
+-- Procedure structure for PurgeAccountByUsername
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `PurgeAccountByUsername`;
+delimiter ;;
+CREATE PROCEDURE `PurgeAccountByUsername`(IN inUsername varchar(255))
+BEGIN
+  DELETE FROM account WHERE username=inUsername;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for PurgeChallengeById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `PurgeChallengeById`;
+delimiter ;;
+CREATE PROCEDURE `PurgeChallengeById`(IN inChallengeId INT)
+BEGIN
+  DELETE FROM challenge WHERE id=inChallengeId;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for PurgeChallengeCommentById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `PurgeChallengeCommentById`;
+delimiter ;;
+CREATE PROCEDURE `PurgeChallengeCommentById`(IN inChallengeCommentId INT)
+BEGIN
+  DELETE FROM challenge_comment WHERE id=inChallengeCommentId;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for PurgeChallengeSubmissionById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `PurgeChallengeSubmissionById`;
+delimiter ;;
+CREATE PROCEDURE `PurgeChallengeSubmissionById`(IN inChallengeSubmissionId INT)
+BEGIN
+  DELETE FROM challenge_submission WHERE id=inChallengeSubmissionId;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for PurgeChallengeTestById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `PurgeChallengeTestById`;
+delimiter ;;
+CREATE PROCEDURE `PurgeChallengeTestById`(IN inChallengeTestId INT)
+BEGIN
+  DELETE FROM challenge_test WHERE id=inChallengeTestId;
+END
+;;
+delimiter ;
+
+-- ----------------------------
 -- Procedure structure for UpdateAccount
 -- ----------------------------
 DROP PROCEDURE IF EXISTS `UpdateAccount`;
@@ -537,6 +643,21 @@ END
 delimiter ;
 
 -- ----------------------------
+-- Procedure structure for UpdateChallengeCommentIsDeletedById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `UpdateChallengeCommentIsDeletedById`;
+delimiter ;;
+CREATE PROCEDURE `UpdateChallengeCommentIsDeletedById`(IN in_comment_id INT,
+		IN in_is_deleted TINYINT)
+BEGIN
+		UPDATE challenge_comment SET is_deleted=in_is_deleted
+		WHERE challenge_comment.id = in_comment_id;
+		
+END
+;;
+delimiter ;
+
+-- ----------------------------
 -- Procedure structure for UpdateChallengeDescriptionById
 -- ----------------------------
 DROP PROCEDURE IF EXISTS `UpdateChallengeDescriptionById`;
@@ -559,6 +680,20 @@ CREATE PROCEDURE `UpdateChallengeDifficultyById`(IN in_challenge_id INT,
     IN in_difficulty ENUM('Easy', 'Medium', 'Hard'))
 BEGIN
 		UPDATE challenge SET difficulty=in_difficulty
+		WHERE challenge.id=in_challenge_id;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for UpdateChallengeIsDeletedById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `UpdateChallengeIsDeletedById`;
+delimiter ;;
+CREATE PROCEDURE `UpdateChallengeIsDeletedById`(IN in_challenge_id INT,
+    IN is_deleted TINYINT)
+BEGIN
+		UPDATE challenge SET is_deleted=is_deleted
 		WHERE challenge.id=in_challenge_id;
 END
 ;;
@@ -618,6 +753,20 @@ CREATE PROCEDURE `UpdateChallengeTest`(IN in_challenge_test_id INT,
 BEGIN
 		UPDATE challenge_test SET input=in_input, output=in_output 
 		WHERE challenge_test.id=in_challenge_test_id AND challenge_test.challenge_id=in_challenge_id;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for UpdateChallengeTestIsDeletedById
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `UpdateChallengeTestIsDeletedById`;
+delimiter ;;
+CREATE PROCEDURE `UpdateChallengeTestIsDeletedById`(IN in_challenge_test_id INT,
+		IN in_is_deleted TINYINT)
+BEGIN
+		UPDATE challenge_test SET is_deleted=in_is_deleted
+		WHERE challenge_test.id=in_challenge_test_id;
 END
 ;;
 delimiter ;
