@@ -104,7 +104,7 @@ class App:
 
                 # Check the result and display appropriate message
                 if result == 'Success':
-                    return redirect(url_for('/'))
+                    return render_template('register.html', success_message='Registration successful')
                 elif result == 'Username in use':
                     return render_template('register.html', error_message='Username already in use'), 400
                 elif result == 'Email in use':
@@ -112,9 +112,7 @@ class App:
             except Exception as e:
             # Handle other exceptions (e.g., database connection issues)
                 render_template('register.html', error_message='An error occured while registering - please try again later'), 500
-            return redirect(url_for('register')), 403
-
-
+            return render_template('register.html', success_message='Registration successful')
             
     def submit_login(self):
         """
