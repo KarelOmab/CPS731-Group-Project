@@ -15,11 +15,20 @@
                 <h2 class="text-center pt-3">Sign Up Now</h2>
                 <p class="text-center text-muted lead"> Start your journey to improve your coding skills!</p>
                 <form action="{{ url_for('register_user')}}" method="POST">
-                    {% if error_message %}
-                    <div class="alert alert-danger" role="alert">
-                        {{ error_message }}
-                     </div>
+                    {% if error_message%}
+                        <div class="alert alert-danger" role="alert">
+                            {{ error_message }}
+                        </div>
                     {% endif %}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}" role="alert">
+                                    {{ message }}
+                                    </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
                     <div class = "input-group mb-3">
                         <span class="input-group-text"><i class="fa fa-user"></i></span>
                         <input type="text" class="form-control" name="first_name" placeholder="First Name" />
@@ -38,11 +47,11 @@
                     </div>
                     <div class = "input-group mb-3">
                         <span class="input-group-text"><i class="fa fa-lock"></i></span>
-                        <input type="text" class="form-control" name="password" placeholder="Password" />
+                        <input type="password" class="form-control" name="password" placeholder="Password" />
                     </div>
                     <div class = "input-group mb-3">
                         <span class="input-group-text"><i class="fa fa-lock"></i></span>
-                        <input type="text" class="form-control" name="confirm_password" placeholder="Confirm password" />
+                        <input type="password" class="form-control" name="confirm_password" placeholder="Confirm password" />
                     </div>
                     <div class="d-grid text-center">
                         <button type="submit" class="btn btn-success">Sign Up!</button>

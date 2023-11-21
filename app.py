@@ -11,7 +11,7 @@ class App:
     def __init__(self):
         load_dotenv()
         self.app = Flask(__name__)
-        self.app.secret_key = os.environ.get("SECRET_KEY")
+        self.app.secret_key = 'dasdsahdkjsadhasjkhjkdhsajkd'
         
         # Routes setup
         self.setup_routes()
@@ -57,7 +57,7 @@ class App:
             A rendered template of 'register.html' which is the page where new users can register an account.
         """
         return render_template('register.html')
-
+    
     def register_user(self):
         """ 
         Register a new user in the system.
@@ -83,7 +83,6 @@ class App:
         """
 
         if request.method == 'POST':
-        # Extract user input from the form
             first_name = request.form.get('first_name')
             last_name = request.form.get('last_name')
             email = request.form.get('email_address')
@@ -93,31 +92,29 @@ class App:
 
             hashed_password = CryptoService.hash_password(password)
 
-            # Add your validation logic here if needed
             if not all([first_name, last_name, email, username, password, confirm_password]):
-                flash('All fields are required.', 'error')
-                return redirect(url_for('register'))
+                return render_template('register.html', error_message='Please fill all fields')
 
             if password != confirm_password:
-                flash('Password and confirm password do not match.', 'error')
-                return redirect(url_for('register'))
+                return render_template('register.html', error_message='Passwords do not match')
 
-            # Call the method to insert the account into the database
-            result = SqlService.insert_account(usergroup=3, username=username, password=hashed_password, email=email)
+            try:
+            # insert the account into the database
+                result = SqlService.insert_account(usergroup=3, username=username, password=hashed_password, email=email)
 
-            # Check the result and display appropriate message
-            if result == 'Success':
-                # Registration successful, redirect to a success page or login page
-                return redirect(url_for('index'))
-            elif result == 'Username in use':
-                # Display a message indicating that the username is already in use
-                return render_template('register.html', error_message='Username already in use')
-            elif result == 'Email in use':
-                # Display a message indicating that the email is already in use
-                return render_template('register.html', error_message='Email already in use')
+                # Check the result and display appropriate message
+                if result == 'Success':
+                    return redirect(url_for('/'))
+                elif result == 'Username in use':
+                    return render_template('register.html', error_message='Username already in use'), 400
+                elif result == 'Email in use':
+                    return render_template('register.html', error_message='Email already in use'), 400
+            except Exception as e:
+            # Handle other exceptions (e.g., database connection issues)
+                render_template('register.html', error_message='An error occured while registering - please try again later'), 500
+            return redirect(url_for('register')), 403
 
-        # If the request method is not POST, redirect to the registration page
-        return redirect(url_for('register'))
+
             
     def submit_login(self):
         """
