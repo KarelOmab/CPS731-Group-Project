@@ -213,11 +213,11 @@
   
   <div class="card">
       <div class="card-header">
-          <h2 class="card-title">{{ challenge.name }}  <a id = "edit_challenge_name"   onclick="editChallengeName('{{challenge.id}}')" class="btn btn-link">Edit</a></h2>
+          <h2 class="card-title">{{ challenge.name }}  {% if session['priviledge'] %}<a id = "edit_challenge_name"   onclick="editChallengeName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h2>
       </div>
       <div class="card-body">
-          <h5 class="card-title">Difficulty: {{ challenge.difficulty }} <a  id = 'edit-difficulty'  onclick = "editDifficultyLevel('{{ challenge.id }}')""  class="btn btn-link">Edit</a></h5>
-          <p class="card-text">Description: {{ challenge.description }} <a  onclick="editChallengeDiscription('{{challenge.id}}')" class="btn btn-link">Edit</a></p>
+          <h5 class="card-title">Difficulty: {{ challenge.difficulty }}    {% if session['priviledge'] %}<a  id = 'edit-difficulty'  onclick = "editDifficultyLevel('{{ challenge.id }}')""  class="btn btn-link">Edit</a> {% endif %}</h5>
+          <p class="card-text">Description: {{ challenge.description }} {% if session['priviledge'] %}<a  onclick="editChallengeDiscription('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</p>
           
           <!-- Challenge Examples -->
           <ul class="list-group mb-3">
@@ -232,13 +232,15 @@
                     <p style="display: inline;"> <i class="fas fa-arrow-right"></i></p>
                     <p style="display: inline;"> {{ test.test_output }}</p>
                   </div>
-                  <a id = 'delete-test-case' name='{{ test.id }}'   onclick="deleteTestCase('{{challenge.id}}','{{test.id}}')"class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
-                  
+                  {% if session['priviledge'] %}
+                    <a id = 'delete-test-case' name='{{ test.id }}'   onclick="deleteTestCase('{{challenge.id}}','{{test.id}}')"class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
+                  {% endif %}
               </li>
               {% endfor %}
           </ul>
 
           <!-- Add Test Case -->
+          {% if session['priviledge'] %}
           <h4 class="mb-3">Add Test Case</h4>
           <form action="{{ url_for('add_test_case', challenge_id=challenge.id) }}" method="post">
             <div class="form-row">
@@ -256,16 +258,27 @@
               </div>
             </div> 
           </form>
+          {% endif %}
 
           <!-- Code Stub -->
-          <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}<a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a></h4>
+          <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}  {% if session['priviledge'] %}<a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h4>
           <h4 class="mb-3">Code Stub</h4>
-          <form action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
+          {% if session['priviledge'] %}
+            <form action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
+          {% else %}
+            <form action="" method="post">
+          {% endif %}
+              
               <div class="form-group">
                   <textarea class="form-control" id="codeStub" name="stub-block" rows="5"> {{ challenge.stub_block }}
                   </textarea>
               </div>
-              <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
+              {% if session['priviledge'] %}
+                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
+              {% else %}
+                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Sumit Solution</button>
+              {% endif %}
+              <!-- I think we should have a submit button for the user to submit their code-->
           </form>
           <div>
             <h4 class="mb-3">Submissions</h4>
@@ -280,7 +293,7 @@
              
                     <div class="card-header">
                         <!-- Display username and the creation date of the comment -->
-                        <strong>{{ challenge.name }}</strong> submitted {{ solution.created_at.strftime('%Y-%m-%d %H:%M:%S') }}n
+                        <strong>{{ challenge.name }}</strong> submitted {{ solution.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
                     </div>
                     <div class="card-body">
                         <!-- Display the title of the comment -->
@@ -292,7 +305,9 @@
                     <!-- To allow modertator to delete -->
                     <div class="card-footer text-end">
                         <!-- Delete button (you may want to include a confirmation before deletion) -->
-                        <button class="btn btn-danger btn-sm" >Delete</button>
+                        {% if session['priviledge'] %}
+                          <button class="btn btn-danger btn-sm" >Delete</button>
+                        {% endif %}
                     </div>
                 </div>
   
@@ -341,7 +356,9 @@
                   <!-- To allow modertator to delete -->
                   <div class="card-footer text-end">
                       <!-- Delete button (you may want to include a confirmation before deletion) -->
-                      <button class="btn btn-danger btn-sm" onclick="deleteComment('{{ comment.id}}' , '{{challenge.id}}')">Delete</button>
+                      {% if session['priviledge'] %}
+                        <button class="btn btn-danger btn-sm" onclick="deleteComment('{{ comment.id}}' , '{{challenge.id}}')">Delete</button>
+                      {% endif %}
                   </div>
               </div>
               {% endif %}

@@ -10,7 +10,8 @@ class App:
     def __init__(self):
         load_dotenv()
         self.app = Flask(__name__)
-        self.app.secret_key = os.environ.get("SECRET_KEY")
+        self.app.secret_key = "super secret key"
+        #self.app.secret_key = os.environ.get("SECRET_KEY")
         
         # Routes setup
         self.setup_routes()
@@ -22,7 +23,8 @@ class App:
         self.app.add_url_rule('/logout', 'logout', self.logout)
         self.app.add_url_rule('/login', 'login', self.login)
         self.app.add_url_rule('/submit_login', 'submit_login', self.submit_login, methods=['POST'])
-        self.app.add_url_rule('/challenges', 'challenges', self.challenges)
+        self.app.add_url_rule('/challenges', 'challenges', self.challenges) # I added the methods=['POST']
+        self.app.add_url_rule('/sort_challenges/<sorting_criteria>', 'sort_challenges', self.sort_challenges, methods=['POST'])
         self.app.add_url_rule('/insert_challenge', 'insert_challenge', self.insert_challenge)
         self.app.add_url_rule('/submit_challenge', 'submit_challenge', self.submit_challenge, methods=['POST'])
         self.app.add_url_rule('/submission/<int:challenge_id>', 'submission', self.submission, methods=['POST'])
@@ -56,7 +58,8 @@ class App:
         #SqlService.insert_account(2,'dan',CryptoService.hash_password('1234'),'daniel.gashaw@torontomu.ca')
         #SqlService.insert_account(3,'daniel',CryptoService.hash_password('1234'),'nigussiedanieltoronto@gmail.com')
 
-        
+        #here we want to make sure that the first time challenges are displayed, they are sorted by difficulty
+        session['sorting_criteria'] = 'difficulty'
         return render_template('index.html')
 
     def register(self):
@@ -123,14 +126,11 @@ class App:
             session['priviledge'] = user_accout.privileged_mode
             session['userid'] = user_accout.id
 
+
             return redirect(url_for('index'))
         else:
            return redirect(url_for('login'))
-
-
-
-        
-        
+         
 
     def logout(self):
         """
@@ -147,7 +147,9 @@ class App:
         Returns:
             A redirect to the 'index' route, which is the default page users see after logging out.
         """
-        pass
+        session.clear()
+        return redirect(url_for('index'))
+
 
     def login(self):
         """
@@ -162,6 +164,17 @@ class App:
         """
         return render_template('login.html')
 
+    def sort_challenges(self,sorting_criteria):
+        """
+            whenn the user selects how the challenges displayed to be sorted, we want
+            set a session variable to, and redirect to the challenge page so that the 
+            challenges are displayed based on the new user sorting_criteria
+        """
+        session['sorting_criteria'] = sorting_criteria
+        return redirect(url_for('challenges'))
+       
+        
+    
     def challenges(self):
         """
         Display all available challenges.
@@ -177,22 +190,18 @@ class App:
         """
 
         #fetch all the challenges
-        """
-         try:
-            
-        except:
-            print()
-            #flash('Failed to add challenge.')
-        """
         challenges = SqlService.get_all_challenges()
 
+        #Sort the challenges by name
+        if( session['sorting_criteria'] == 'name'):
+            challenges = sorted(challenges, key=lambda x: x.name)
+            
         #Sorting the challenges by their difficulty level
-        difficulty_mapping = {'Easy': 1, 'Medium': 2, 'Hard': 3}
-        challenges.sort(key=lambda x: difficulty_mapping.get(x.difficulty, 0))
+        else:
+            difficulty_mapping = {'Easy': 1, 'Medium': 2, 'Hard': 3}
+            challenges.sort(key=lambda x: difficulty_mapping.get(x.difficulty, 0))
 
-        #flash('Challenge added successfully!')
         return render_template("challenges.html", challenges = challenges)
-       
 
     def insert_challenge(self):
         """
@@ -247,15 +256,16 @@ class App:
        
         # Process the new challenge to the database
         try:
-            last_id = SqlService.insert_challenge(1,challenge_name,challenge_difficulty, challenge_description, stub_name, stub_block,time_allowed)
+            if session['priviledge']:
+                last_id = SqlService.insert_challenge(session['userid'],challenge_name,challenge_difficulty, challenge_description, stub_name, stub_block,time_allowed)
 
-            #inserting a challenge test cases
-            for input_case, output_case in zip(input_test_cases,output_test_cases):
-                last_id_inserted = SqlService.insert_challenge_test(last_id[0]['LAST_INSERT_ID()'],input_case,output_case)
-           
+                #inserting a challenge test cases
+                for input_case, output_case in zip(input_test_cases,output_test_cases):
+                    last_id_inserted = SqlService.insert_challenge_test(last_id[0]['LAST_INSERT_ID()'],input_case,output_case)
+            
 
-            if last_id != None:
-                challenges = SqlService.get_all_challenges()
+                if last_id != None:
+                    challenges = SqlService.get_all_challenges()
 
         except RuntimeError as err:
             print(f"Error! {err}")
@@ -352,21 +362,22 @@ class App:
         #once the session variable is set I am going to check if the user is looged in
         #For now I am assuming the user id is 1
 
-        try:
-            comment_title = request.form['comment-title']
-            comment_content = request.form['comment-content']
+        if session['userid']:
+            try:
+                comment_title = request.form['comment-title']
+                comment_content = request.form['comment-content']
 
-            #If the user enters an empty title or comment 
-            if(comment_title == None or comment_content == None):
+                #If the user enters an empty title or comment 
+                if(comment_title == None or comment_content == None):
+                    return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+                
+                #Inserting the comment to the challenge
+                else:
+                    insert_id = SqlService.insert_challenge_comment(session['userid'],challenge_id, comment_title, comment_content)
+
+            except RuntimeError as err:
+                print(f"Error! {err}")
                 return redirect(url_for('generic_challenge', challenge_id=challenge_id))
-            
-            #Inserting the comment to the challenge
-            else:
-                insert_id = SqlService.insert_challenge_comment(1,challenge_id, comment_title, comment_content)
-
-        except RuntimeError as err:
-            print(f"Error! {err}")
-            return redirect(url_for('generic_challenge', challenge_id=challenge_id))
 
         return redirect(url_for('generic_challenge', challenge_id=challenge_id))
     
@@ -388,9 +399,10 @@ class App:
             deletion attempt.
         """
         try:
-            #delete_confirmation = SqlService.delete_challenge_by_id(challenge_id)
+            if session['priviledge']:
+                delete_confirmation = SqlService.delete_challenge_by_id(challenge_id)
 
-            delete_test_confirmation = SqlService.get_challenge_test_by_id(challenge_id)
+            #delete_test_confirmation = SqlService.get_challenge_test_by_id(challenge_id)
           
         except RuntimeError as err:
             print(f"Error! {err}")
@@ -417,8 +429,10 @@ class App:
         try:
             #return_value = SqlService.update_challenge_name_by_id(challenge_id)
             new_challenge_name = request.json
-            SqlService.update_challenge_name_by_id(challenge_id, new_challenge_name['new_challenge_name'])
-            return jsonify({'message': 'ok'}), 200
+
+            if session['priviledge']:
+                SqlService.update_challenge_name_by_id(challenge_id, new_challenge_name['new_challenge_name'])
+                return jsonify({'message': 'ok'}), 200
         except RuntimeError as err:
             print(f"Error occurred while updating challenge name! {err}")
         
@@ -441,9 +455,9 @@ class App:
          try:
             new_difficulty_level = request.json
 
-            print(f"New difficulty level received {new_difficulty_level}")
-            SqlService.update_challenge_difficulty_by_id(challenge_id,new_difficulty_level['newValue'])
-            return jsonify({'message': 'ok'}), 200
+            if session['priviledge']:
+                SqlService.update_challenge_difficulty_by_id(challenge_id,new_difficulty_level['newValue'])
+                return jsonify({'message': 'ok'}), 200
          except:
              return jsonify({'message': 'unautorized user'}), 403
         
@@ -468,8 +482,10 @@ class App:
         try:
             #return_value = SqlService.update_challenge_name_by_id(challenge_id)
             new_challenge_discr = request.json
-            SqlService.update_challenge_description_by_id(challenge_id, new_challenge_discr['new_challenge_discr'])
-            return jsonify({'message': 'ok'}), 200
+
+            if session['priviledge']:
+                SqlService.update_challenge_description_by_id(challenge_id, new_challenge_discr['new_challenge_discr'])
+                return jsonify({'message': 'ok'}), 200
         
         except RuntimeError as err:
             print(f"Error occurred while updating challenge name! {err}")
@@ -494,8 +510,10 @@ class App:
         try:
             #return_value = SqlService.update_challenge_name_by_id(challenge_id)
             new_stub_name = request.json
-            SqlService.update_challenge_stub_name_by_id(challenge_id, new_stub_name['stub_name'])
-            return jsonify({'message': 'ok'}), 200
+
+            if session['priviledge']:
+                SqlService.update_challenge_stub_name_by_id(challenge_id, new_stub_name['stub_name'])
+                return jsonify({'message': 'ok'}), 200
         
         except RuntimeError as err:
             print(f"Error occurred while updating challenge name! {err}")
@@ -519,10 +537,11 @@ class App:
 
         try:
             new_stub_block = request.form['stub-block']
-
-            SqlService.update_challenge_stub_block_by_id(challenge_id, new_stub_block)
-            #returning an Okay message to the caller
-            return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
+            
+            if session['priviledge']:
+                SqlService.update_challenge_stub_block_by_id(challenge_id, new_stub_block)
+                #returning an Okay message to the caller
+                return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
            
 
         except RuntimeError as err:
@@ -548,11 +567,8 @@ class App:
             input_parameter = request.form['inputParameters[]']
             output_parameter = request.form['expectedOutput[]']
 
-            SqlService.insert_challenge_test(challenge_id, input_parameter, output_parameter)
-
-            #returning an Okay message to the caller
-            #return jsonify({'message': 'ok'}), 200
-
+            if session['priviledge']:
+                SqlService.insert_challenge_test(challenge_id, input_parameter, output_parameter)
            
         except RuntimeError as err:
             print(f"Error occurred adding new test case. {err}")
@@ -576,8 +592,9 @@ class App:
         #It will be included once the session variable is created
 
         try:
-            SqlService.delete_challenge_test_by_id_and_challenge_id(test_case_id, challenge_id)
-            return jsonify({'message': 'ok'}), 200
+            if session['priviledge']:
+                SqlService.delete_challenge_test_by_id_and_challenge_id(test_case_id, challenge_id)
+                return jsonify({'message': 'ok'}), 200
 
         except RuntimeError as err:
             print(f"Error has occurred while deleting a test case. {err}")
@@ -586,7 +603,7 @@ class App:
         
         
 
-    def delete_comment(self, challenge_id, comment_id): #
+    def delete_comment(self, challenge_id, comment_id): 
         """
         Deletes a comment from a challenge if the user has privileged access.
 
@@ -603,11 +620,8 @@ class App:
         #It will be included once the session variable is created
 
         try:
-            
-            SqlService.delete_challenge_comment_by_id_and_challenge_id(comment_id, challenge_id)
-
-            #returning an Okay message to the caller
-            #return jsonify({'message': 'ok'}), 200
+            if session['priviledge']:
+                SqlService.delete_challenge_comment_by_id_and_challenge_id(comment_id, challenge_id)
             
         except RuntimeError as err:
             print(f'Error Deleting Comment! {err}')

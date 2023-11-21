@@ -5,14 +5,28 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
     <!-- Bootstrap JS, Popper.js, and jQuery are included at the end of the body for performance reasons -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src= "https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <title>Challenges</title>
 
     <script>
+      function sortChallenges(sort_criteria)
+        {
+         
+          $.ajax({
+            url: '/sort_challenges/'+sort_criteria,
+            method: 'POST',
+            contentType: 'application/json',
+            success: function(response) {
+                window.location.reload(true);
+            },
+            error: function() {
+                alert("Error editing challenge difficulty level.");
+            }
+        });
 
-      
+        }      
     </script>
 </head>
 <body class="d-flex flex-column h-100">
@@ -26,10 +40,14 @@
     {% endwith %}
     <div class="container mt-4">
       <h2>Available Challenges</h2>
+        <!-- Sorting options -->
+      
       <ul class="list-group">
+        {% if session['priviledge'] %}
         <li class="list-group-item">
           <a href="/insert_challenge">New Challenge</a>
         </li>
+        {% endif %}
         <!-- Example challenges -->
         {% for challenge in challenges %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -37,13 +55,19 @@
               <div class="mx-5 ">{{ challenge.difficulty }}</div>
               <!-- <a id = "{{ challenge.id }}" href= "/challenges/{{ challenge.id}}" >{{ challenge.name }}</a>
               <p class="mb-0 text-center">{{ challenge.difficulty}}</p> -->
-              <button class="btn btn-danger btn-sm float-right delete-btn" data-id="{{ challenge.id }}"><a href="/delete_challenge/{{ challenge.id }}" style="text-decoration: none;color:white">Delete</a></button>
+              {% if session['priviledge'] %}
+                <button class="btn btn-danger btn-sm float-right delete-btn" data-id="{{ challenge.id }}"><a href="/delete_challenge/{{ challenge.id }}" style="text-decoration: none;color:white">Delete</a></button>
+              {% endif %}
             </li>
         {% endfor %}
         
         
         <!-- More challenges... -->
       </ul>
+      <div style = "margin-top: 1vw">
+        <button id="sort-name" class="btn btn-primary" onclick="sortChallenges('name')" >Sort Challenges by Name</button>
+        <button id="sort-difficulty" class="btn btn-primary" onclick = "sortChallenges('difficulty')" >Sort Challenges by Difficulty</button>
+      </div>
     </div>
 </body>
 {% include 'footer.html' %}
