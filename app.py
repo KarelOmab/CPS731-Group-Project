@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, request, redirect, url_for
+from flask import Flask, render_template, session, request, redirect, url_for, flash
 import os
 from dotenv import load_dotenv
 from classes.util.sqlservice import SqlService
@@ -277,7 +277,15 @@ class App:
             A redirect to the challenge page with a flash message indicating the outcome of the comment
             submission attempt.
         """
-        pass
+        if 'id' in session:
+            title = request.form.get('title')
+            text = request.form.get('text')
+            if title and text:
+                SqlService.insert_challenge_comment(challenge_id, session['id'], title, text)
+                return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+            else:
+                flash('Please provide a title and text for your comment')
+                return redirect(url_for('generic_challenge', challenge_id=challenge_id))
         
 
     def delete_challenge(self, challenge_id):

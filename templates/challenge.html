@@ -66,7 +66,14 @@
     </div>
     <hr>
     <div>
-        
+        <h2>Add a Comment</h2>
+        <form id="newCommentForm">
+            <label for="commentTitle">Title:</label><br>
+            <input type="text" id="commentTitle" name="commentTitle" required><br>
+            <label for="commentText">Comment:</label><br>
+            <textarea id="commentText" name="commentText" rows="4" cols="50" required></textarea><br>
+            <input type="submit" value="Submit Comment">
+        </form>
     </div>
     {% endif %}
     <div>
@@ -85,6 +92,32 @@
         </p>
         {% endfor %}
     </div>
-</body>
+    <script>
+        $(document).ready(function () {
+            $('#newCommentForm').on('submit', function (event) {
+                event.preventDefault(); // Prevent default form submission
 
+                var $form = $(this);
+                var url_array = window.location.href.split('/');
+                var challenge_id = url_array[url_array.length - 1];
+                $.ajax({
+                    url: '/submit_comment/'+challenge_id, // URL for the POST request
+                    method: 'POST',
+                    data: $form.serialize(),
+                    dataType: 'json', // expecting JSON response
+                    success: function (data) {
+                        displayResults(data);
+                    },
+                    error: function (xhr) {
+                        var data = xhr.responseJSON || JSON.parse(xhr.responseText);
+                        displayResults(data);
+                    },
+                    complete: function (xhr, textStatus) {
+                        console.log('Request completed with status:', textStatus);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
 </html>
