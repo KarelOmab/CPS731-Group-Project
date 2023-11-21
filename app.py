@@ -1,7 +1,6 @@
 from flask import Flask, render_template
 from flask import request, redirect, url_for
-from flask import flash
-from flask import jsonify
+from flask import session
 from classes.util.cryptoservice import CryptoService
 from classes.util.sqlservice import SqlService
 import os
@@ -111,8 +110,9 @@ class App:
                     return render_template('register.html', error_message='Email already in use'), 400
             except Exception as e:
             # Handle other exceptions (e.g., database connection issues)
+                result == 'False'
                 render_template('register.html', error_message='An error occured while registering - please try again later'), 500
-            return render_template('register.html', success_message='Registration successful')
+        return redirect(url_for('register')), 403  # 403 Forbidden
             
     def submit_login(self):
         """
@@ -134,7 +134,35 @@ class App:
             A redirect to the 'index' route for a successful login, or a string 
             with an error message for a failed login attempt.
         """
-        pass
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+
+            if not all([username, password]):
+                return render_template('login.html', error_message='Please enter both username and password')
+
+            hashed_password = CryptoService.hash_password(password)
+
+            try:
+                # Retrieve account from the database based on username and hashed password
+                account = SqlService.get_account_by_username_password(username, hashed_password)
+
+                if account:
+                    # Populate user's session with relevant information
+                    session['user_id'] = account['id']
+                    session['username'] = account['username']
+                    session['is_privileged'] = account['usergroup_id'] == 3
+
+                    # Redirect to the index page after successful login
+                    return redirect(url_for('index'))
+                else:
+                    return render_template('login.html', error_message='Invalid username or password')
+            except Exception as e:
+                # Handle other exceptions (e.g., database connection issues)
+                return render_template('login.html', error_message='An error occurred during login - please try again later')
+
+        # If the request method is not POST, redirect to the login page
+        return redirect(url_for('login'))
 
     def logout(self):
         """

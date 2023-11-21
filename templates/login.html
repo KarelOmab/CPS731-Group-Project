@@ -15,7 +15,17 @@
             <div class="col-lg-4 bg-white m-auto rounded-top wrapper">
                 <h2 class="text-center pt-3">Login</h2>
                 <p class="text-center text-muted lead"> Start your journey to improve your coding skills!</p>
-                <form action="#">
+                <form action="{{ url_for('submit_login') }}" method="POST">
+                    {% if error_message%}
+                        <div class="alert" role="alert">
+                            {{ error_message }}
+                        </div>
+                    {% endif %}
+                    {% if success_message %}
+                        <div class="alert alert-success" role="alert">
+                            {{ success_message }}
+                        </div>
+                    {% endif %}   
                     <div class = "input-group mb-3">
                         <span class="input-group-text"><i class="fa fa-user"></i></span>
                         <input type="text" class="form-control" placeholder="Username" />
@@ -35,5 +45,4 @@
         </div>
     </div>
 </body>
-
 </html>
