@@ -2,58 +2,81 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>{{ challenge.name }}</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <title>{{ challenge.name }}</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
-  {% include 'navbar.html' %}
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-  {% for category, message in messages %}
-  <div class="alert alert-{{ category }}">{{ message }}</div>
-  {% endfor %}
-  {% endif %}
-  {% endwith %}
-  <div>
-    <h2>
-      {{challenge.name}}
-    </h2>
-    <p>
-      Difficulty: {{challenge.difficulty}}
-    </p>
-    <p>
-      Description: {{challenge.description}}
-    </p>
-    <h3>
-      Examples:
-    </h3>
-    <ul>
-      {% for test in tests %}
-      <li>
-        {{challenge.stub_name}}({{test.test_input}}) -> {{test.test_output}}
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-  <hr>
-  <div>
-    <h2>
-      Comments
-    </h2>
-    {% for comment in comments %}
-    <h3>
-      {{comment.title}}
-    </h3>
-    <p>
-      {{comment.text}}
-    </p>
-    <p>
-      Posted By: {{comment.username}} on {{comment.created_at}}
-    </p>
+    {% include 'navbar.html' %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
     {% endfor %}
-  </div>
+    {% endif %}
+    {% endwith %}
+    <div>
+        <h2>
+            {{challenge.name}}
+        </h2>
+        <p>
+            Difficulty: {{challenge.difficulty}}
+        </p>
+        <p>
+            Description: {{challenge.description}}
+        </p>
+        <h3>
+            Examples:
+        </h3>
+        <ul>
+            {% for test in tests %}
+            <li>
+                {{challenge.stub_name}}({{test.test_input}}) -> {{test.test_output}}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <hr>
+    <div>
+        <h2>Submissions</h2>
+
+        <table border="1" style="border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>Submitted At</th>
+                    <th>Execution Time</th>
+                    <th>Characters</th>
+                </tr>
+            </thead>
+            {% for submission in submissions %}
+            <tbody>
+                <tr>
+                    <td>submission.created_at</td>
+                    <td>submission.exec_time</td>
+                    <td>submission.exec_chars</td>
+                </tr>
+            </tbody>
+            {% endfor %}
+        </table>
+    </div>
+    <hr>
+    <div>
+        <h2>
+            Comments
+        </h2>
+        {% for comment in comments %}
+        <h3>
+            {{comment.title}}
+        </h3>
+        <p>
+            {{comment.text}}
+        </p>
+        <p>
+            Posted By: {{comment.username}} on {{comment.created_at}}
+        </p>
+        {% endfor %}
+    </div>
 </body>
 
 </html>

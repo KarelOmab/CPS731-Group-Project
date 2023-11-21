@@ -250,7 +250,10 @@ class App:
         challenge = SqlService.get_challenge_by_id(challenge_id)
         tests = SqlService.get_challenge_tests_by_id_and_limit(challenge_id)
         comments = SqlService.get_challenge_comments_by_id(challenge_id)
-        return render_template('challenge.html', challenge=challenge, tests=tests, comments=comments)
+        submissions = []
+        if 'id' in session:
+            submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, session['id'])
+        return render_template('challenge.html', challenge=challenge, tests=tests, comments=comments, submissions=submissions)
 
     def submit_comment(self, challenge_id):
         """
