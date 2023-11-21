@@ -8,7 +8,7 @@ class App:
     def __init__(self):
         load_dotenv()
         self.app = Flask(__name__)
-        self.app.secret_key = os.environ.get("SECRET_KEY")
+        self.app.secret_key = "awesfdhasjkfhbadsjklvhasdvsdgvfhadsbklfj"
         
         # Routes setup
         self.setup_routes()
@@ -105,7 +105,7 @@ class App:
             session['id'] = user.id
             session['username'] = user.username
             session['privileged_mode'] = user.privileged_mode
-            return redirect(url_for('index.html'))
+            return redirect(url_for('index'))
         else:
             return "Invalid username or password"
 
@@ -250,10 +250,12 @@ class App:
         challenge = SqlService.get_challenge_by_id(challenge_id)
         tests = SqlService.get_challenge_tests_by_id_and_limit(challenge_id)
         comments = SqlService.get_challenge_comments_by_id(challenge_id)
-        submissions = []
+        submissions = None
+        logged_in = False
         if 'id' in session:
             submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, session['id'])
-        return render_template('challenge.html', challenge=challenge, tests=tests, comments=comments, submissions=submissions)
+            logged_in = True
+        return render_template('challenge.html', challenge=challenge, tests=tests, comments=comments, submissions=submissions, logged_in=logged_in)
 
     def submit_comment(self, challenge_id):
         """

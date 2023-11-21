@@ -38,9 +38,10 @@
         </ul>
     </div>
     <hr>
+    {% if logged_in %}
     <div>
         <h2>Submissions</h2>
-
+        {%if submissions != None%}
         <table border="1" style="border-collapse: collapse;">
             <thead>
                 <tr>
@@ -59,8 +60,15 @@
             </tbody>
             {% endfor %}
         </table>
+        {% else %}
+        <p>No submissions</p>
+        {% endif %}
     </div>
     <hr>
+    <div>
+        
+    </div>
+    {% endif %}
     <div>
         <h2>
             Comments
