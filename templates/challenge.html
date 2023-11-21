@@ -278,7 +278,6 @@
               {% else %}
                 <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Sumit Solution</button>
               {% endif %}
-              <!-- I think we should have a submit button for the user to submit their code-->
           </form>
           <div>
             <h4 class="mb-3">Submissions</h4>
@@ -321,16 +320,18 @@
           </div>
          
           <div style = "padding: 1vw;">
-            <h4 class="mb-3">Add a Comment</h4>
-          <form action="{{ url_for('submit_comment', challenge_id=challenge.id) }}" method="post">
-            <div class="form-group">
-              <label class = "comment-name" for="comment-name">Title</label>
-              <input name = "comment-title" type="text" class="form-control" id="comment-title" placeholder="Comment Title" required>
-              <label  for="comment-content">Comment</label>
-              <textarea class="form-control" id="comment_content" name="comment-content" rows="5" placeholder="Add your comment here"></textarea>
-            </div> 
-            <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Comment</button>
-          </form>
+            {% if session['userid'] %}
+              <h4 class="mb-3">Add a Comment</h4>
+              <form action="{{ url_for('submit_comment', challenge_id=challenge.id) }}" method="post">
+                <div class="form-group">
+                  <label class = "comment-name" for="comment-name">Title</label>
+                  <input name = "comment-title" type="text" class="form-control" id="comment-title" placeholder="Comment Title" required>
+                  <label  for="comment-content">Comment</label>
+                  <textarea class="form-control" id="comment_content" name="comment-content" rows="5" placeholder="Add your comment here"></textarea>
+                </div> 
+                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Comment</button>
+              </form>
+          {% endif %}
           <h4 class="mb-3">Comments</h4>
           <li class="list-group-item">
             {% if not comments %}

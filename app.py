@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request,redirect, session,url_for, flash,jsonify
+from flask import Flask, render_template, request,redirect, session,url_for, flash,jsonify, abort
 import os
 from dotenv import load_dotenv
 import sys
@@ -117,9 +117,9 @@ class App:
             with an error message for a failed login attempt.
         """
         username = request.form['username']
-        userpass = request.form['password']
+        user_password = request.form['password']
 
-        user_accout = SqlService.get_account_by_username_password(username, CryptoService.hash_password(userpass))
+        user_accout = SqlService.get_account_by_username_password(username, CryptoService.hash_password(user_password))
 
         if user_accout:
             session['username'] = user_accout.username
@@ -336,7 +336,10 @@ class App:
         comments = SqlService.get_challenge_comments_by_id(challenge_id)
         submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, 1)
 
-        return render_template('challenge.html', challenge=challenge, testcases=testcases, comments = comments, submissions = submissions)
+        if challenge:
+            return render_template('challenge.html', challenge=challenge, testcases=testcases, comments = comments, submissions = submissions)
+        else: 
+            return abort(404)
 
     def submit_comment(self, challenge_id):
         """

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>challenges</title>
 
     <!-- Bootstrap JS, Popper.js, and jQuery are included at the end of the body for performance reasons -->
     <script src= "https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -41,6 +42,11 @@
     <div class="container mt-4">
       <h2>Available Challenges</h2>
         <!-- Sorting options -->
+      <div style = "margin-top: 1vw; margin-bottom: 1vw;">
+        <button id="sort-name" class="btn btn-primary" onclick="sortChallenges('name')" >Sort Challenges by Name</button>
+        <button id="sort-difficulty" class="btn btn-primary" onclick = "sortChallenges('difficulty')" >Sort Challenges by Difficulty</button>
+      </div>
+      
       
       <ul class="list-group">
         {% if session['priviledge'] %}
@@ -48,13 +54,12 @@
           <a href="/insert_challenge">New Challenge</a>
         </li>
         {% endif %}
-        <!-- Example challenges -->
+        <!-- Display the challenges -->
         {% for challenge in challenges %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <div class="flex-fill"><a id = "{{ challenge.id }}" href= "/challenges/{{ challenge.id}}" >{{ challenge.name }}</a></div>
               <div class="mx-5 ">{{ challenge.difficulty }}</div>
-              <!-- <a id = "{{ challenge.id }}" href= "/challenges/{{ challenge.id}}" >{{ challenge.name }}</a>
-              <p class="mb-0 text-center">{{ challenge.difficulty}}</p> -->
+              
               {% if session['priviledge'] %}
                 <button class="btn btn-danger btn-sm float-right delete-btn" data-id="{{ challenge.id }}"><a href="/delete_challenge/{{ challenge.id }}" style="text-decoration: none;color:white">Delete</a></button>
               {% endif %}
@@ -62,12 +67,9 @@
         {% endfor %}
         
         
-        <!-- More challenges... -->
+        
       </ul>
-      <div style = "margin-top: 1vw">
-        <button id="sort-name" class="btn btn-primary" onclick="sortChallenges('name')" >Sort Challenges by Name</button>
-        <button id="sort-difficulty" class="btn btn-primary" onclick = "sortChallenges('difficulty')" >Sort Challenges by Difficulty</button>
-      </div>
+      
     </div>
 </body>
 {% include 'footer.html' %}
