@@ -21,18 +21,18 @@
       {{challenge.name}}
     </h2>
     <p>
-      {{challenge.difficulty}}
+      Difficulty: {{challenge.difficulty}}
     </p>
     <p>
-      {{challenge.description}}
+      Description: {{challenge.description}}
     </p>
     <h3>
       Examples:
     </h3>
     <ul>
-      {% for example in examples %}
+      {% for test in tests %}
       <li>
-        {{example.stub_name}}({{example.input}}) -> {{example.output}}
+        {{challenge.stub_name}}({{test.test_input}}) -> {{test.test_output}}
       </li>
       {% endfor %}
     </ul>
@@ -43,15 +43,15 @@
       Comments
     </h2>
     {% for comment in comments %}
-      <h3>
-        {{comment.title}}
-      </h3>
-      <p>
-        {{comment.text}}
-      </p>
-      <p>
-        Posted By: {{comment.username}} on {{comment.datetime}}
-      </p>
+    <h3>
+      {{comment.title}}
+    </h3>
+    <p>
+      {{comment.text}}
+    </p>
+    <p>
+      Posted By: {{comment.username}} on {{comment.created_at}}
+    </p>
     {% endfor %}
   </div>
 </body>

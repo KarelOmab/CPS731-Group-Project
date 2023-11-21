@@ -247,29 +247,9 @@ class App:
             The 'challenge.html' template rendered with the challenge details, tests, comments, and user
             submission data (if the user is logged in and has submission data).
         """
-        _challenge = SqlService.get_challenge_by_id(challenge_id)
-        _tests = SqlService.get_challenge_tests_by_id_and_limit(challenge_id)
-        _comments = SqlService.get_challenge_comments_by_id(challenge_id)
-        challenge = {
-            "name": _challenge.name(),
-            "difficulty": _challenge.difficulty(),
-            "description": _challenge.description(),
-        },
-        tests = []
-        for test in _tests:
-            tests.append({
-                "name": _challenge.stub_name(),
-                "input": test.test_input(),
-                "output": test.test_output(),
-            })
-        comments = []
-        for comment in _comments:
-            comments.append({
-                "title": comment.title(),
-                "username": comment.username(),
-                "text": comment.text(),
-                "datetime": comment.created_at(),
-            })
+        challenge = SqlService.get_challenge_by_id(challenge_id)
+        tests = SqlService.get_challenge_tests_by_id_and_limit(challenge_id)
+        comments = SqlService.get_challenge_comments_by_id(challenge_id)
         return render_template('challenge.html', challenge=challenge, tests=tests, comments=comments)
 
     def submit_comment(self, challenge_id):
