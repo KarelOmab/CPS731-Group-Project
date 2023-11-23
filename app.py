@@ -247,6 +247,7 @@ class App:
             The 'challenge.html' template rendered with the challenge details, tests, comments, and user
             submission data (if the user is logged in and has submission data).
         """
+        print("in challenge")
         challenge = SqlService.get_challenge_by_id(challenge_id)
         tests = SqlService.get_challenge_tests_by_id_and_limit(challenge_id)
         comments = SqlService.get_challenge_comments_by_id(challenge_id)
@@ -277,11 +278,12 @@ class App:
             A redirect to the challenge page with a flash message indicating the outcome of the comment
             submission attempt.
         """
+        print("submit comment")
         if 'id' in session:
-            title = request.form.get('title')
-            text = request.form.get('text')
+            title = request.form.get('commentTitle')
+            text = request.form.get('commentText')
             if title and text:
-                SqlService.insert_challenge_comment(challenge_id, session['id'], title, text)
+                SqlService.insert_challenge_comment(session['id'], challenge_id, title, text)
                 return redirect(url_for('generic_challenge', challenge_id=challenge_id))
             else:
                 flash('Please provide a title and text for your comment')

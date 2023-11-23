@@ -104,13 +104,13 @@
                     url: '/submit_comment/'+challenge_id, // URL for the POST request
                     method: 'POST',
                     data: $form.serialize(),
-                    dataType: 'json', // expecting JSON response
                     success: function (data) {
-                        displayResults(data);
+                        console.log("success");
+                        $('html').html(data);
                     },
                     error: function (xhr) {
-                        var data = xhr.responseJSON || JSON.parse(xhr.responseText);
-                        displayResults(data);
+                        console.log("error");
+                        console.log(xhr);
                     },
                     complete: function (xhr, textStatus) {
                         console.log('Request completed with status:', textStatus);
