@@ -124,7 +124,9 @@ class App:
         Returns:
             A redirect to the 'index' route, which is the default page users see after logging out.
         """
-        pass
+        session.pop('id', None)
+        session.pop('username', None)
+        session.pop('privileged_mode', None)
 
     def login(self):
         """
