@@ -1,9 +1,9 @@
-from app import App
 import unittest
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from classes.util.sqlservice import SqlService
+from app import App
 
 
 class FlaskTestCase(unittest.TestCase):
@@ -14,16 +14,24 @@ class FlaskTestCase(unittest.TestCase):
         self.test_client = self.app_instance.app.test_client()
         self.app_instance.app.testing = True
 
-    def tearDown(self, session_id=None, challenge_id=None, title=None, text=None):
-        # Delete any comments created
-        if session_id and challenge_id and title and text:
-            SqlService.delete_comment(session_id, challenge_id, title, text))
+    def delete_comments(self, challenge_id):
+        comments = SqlService.get_challenge_comments_by_id(challenge_id)
+        for comment in comments:
+            SqlService.purge_challenge_comment_by_id(comment.id)
 
+    def delete_submissions(self, challenge_id, account_id):
+        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(
+            challenge_id, account_id)
+
+    def logout(self):
+        # Logout of the session to avoid interfering with other tests
+        self.app_instance.get("/logout")
+
+    # all tests will use challenge with id 1
+    # logged out tests
     def test_challenge_route_success(self):
-        # Assume you have a challenge in your database with an id of 1
-        # Use the test client to make a request
         response = self.test_client.get('/challenges/1')
-
+        print(response)
         # Check the status code
         self.assertEqual(response.status_code, 200)
 
@@ -34,3 +42,6 @@ class FlaskTestCase(unittest.TestCase):
         self.assertIn('Sum', response.data.decode(
             'utf-8'))  # Check for challenge title
         # Add more assertions for testcases, comments, and submissions as needed
+
+if __name__ == '__main__':
+    unittest.main()
