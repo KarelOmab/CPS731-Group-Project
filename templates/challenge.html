@@ -80,6 +80,7 @@
         <h2>
             Comments
         </h2>
+        {% if comments != None %}
         {% for comment in comments %}
         <h3>
             {{comment.title}}
@@ -91,6 +92,7 @@
             Posted By: {{comment.username}} on {{comment.created_at}}
         </p>
         {% endfor %}
+        {% endif %}
     </div>
     <script>
         $(document).ready(function () {
