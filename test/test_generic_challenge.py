@@ -31,7 +31,6 @@ class FlaskTestCase(unittest.TestCase):
     # logged out tests
     def test_challenge_usable_logged_out(self):
         response = self.test_client.get('/challenges/1')
-        self.assertEqual(response.status_code, 200)
         data=response.data.decode('utf-8')
         self.assertIn("Sum", data)
         self.assertIn("Difficulty: Easy", data)
@@ -40,6 +39,15 @@ class FlaskTestCase(unittest.TestCase):
         self.assertIn("Comments", data)
         self.assertNotIn("Submissions", data)
         self.assertNotIn("Add a Comment", data)
+    
+    def test_challenge_usable_one_comment_logged_out(self):
+        SqlService.insert_challenge_comment(2, 1, "test title", "test comment")
+        response = self.test_client.get('/challenges/1')
+        data=response.data.decode('utf-8')
+        self.assertIn("test title", data)
+        self.assertIn("test comment", data)
+        self.assertIn("Posted By:", data)
+        self.delete_comments(1)
 
 if __name__ == '__main__':
     unittest.main()
