@@ -29,19 +29,17 @@ class FlaskTestCase(unittest.TestCase):
 
     # all tests will use challenge with id 1
     # logged out tests
-    def test_challenge_route_success(self):
+    def test_challenge_usable_logged_out(self):
         response = self.test_client.get('/challenges/1')
-        print(response)
-        # Check the status code
         self.assertEqual(response.status_code, 200)
-
-        # Check if the correct template was used
-        self.assertTrue(b'/challenge' in response.data)
-
-        # Check if the returned template title is correct
-        self.assertIn('Sum', response.data.decode(
-            'utf-8'))  # Check for challenge title
-        # Add more assertions for testcases, comments, and submissions as needed
+        data=response.data.decode('utf-8')
+        self.assertIn("Sum", data)
+        self.assertIn("Difficulty: Easy", data)
+        self.assertIn("Description: Write a function named sum that takes two integers a and b and returns their sum.", data)
+        self.assertIn("Examples:", data)
+        self.assertIn("Comments", data)
+        self.assertNotIn("Submissions", data)
+        self.assertNotIn("Add a Comment", data)
 
 if __name__ == '__main__':
     unittest.main()
