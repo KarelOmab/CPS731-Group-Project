@@ -44,9 +44,9 @@ class FlaskTestCase(unittest.TestCase):
         SqlService.insert_challenge_comment(2, 1, "test title", "test comment")
         response = self.test_client.get('/challenges/1')
         data=response.data.decode('utf-8')
-        self.assertIn("test title", data)
-        self.assertIn("test comment", data)
-        self.assertIn("Posted By:", data)
+        self.assertEqual(data.count("test title"), 1)
+        self.assertEqual(data.count("test comment"), 1)
+        self.assertEqual(data.count("Posted By:"), 1)
         self.delete_comments(1)
 
 if __name__ == '__main__':
