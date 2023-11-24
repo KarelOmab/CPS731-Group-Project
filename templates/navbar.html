@@ -4,10 +4,13 @@
         <a href="/">Home</a>
         <a href="/challenges">Challenges</a>
     </div>
-
+    {% if logged_in%}
     <div>
-
-        <a href="/login">Login</a>
-
+        <a href="/logout">Logout</a>
     </div>
+    {% else %}
+    <div>
+        <a href="/login">Login</a>
+    </div>
+    {% endif %}
 </nav>

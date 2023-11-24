@@ -43,7 +43,10 @@ class App:
         Returns:
             A rendered template of 'index.html' which is the home page of the website.
         """
-        return render_template('index.html')
+        logged_in = False
+        if 'id' in session:
+            logged_in = True
+        return render_template('index.html', logged_in=logged_in)
 
     def register(self):
         """
@@ -105,7 +108,7 @@ class App:
             session['id'] = user.id
             session['username'] = user.username
             session['privileged_mode'] = user.privileged_mode
-            return redirect(url_for('index'))
+            return redirect(url_for('index', logged_in=True))
         else:
             return "Invalid username or password"
 
@@ -127,6 +130,7 @@ class App:
         session.pop('id', None)
         session.pop('username', None)
         session.pop('privileged_mode', None)
+        return redirect(url_for('index'))
 
     def login(self):
         """
@@ -139,7 +143,7 @@ class App:
         Returns:
             An HTML page rendered from the 'login.html' template.
         """
-        return render_template('login.html')
+        return render_template('login.html', logged_in=False)
 
     def challenges(self):
         """

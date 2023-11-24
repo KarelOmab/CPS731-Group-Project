@@ -41,7 +41,7 @@
     {% if logged_in %}
     <div>
         <h2>Submissions</h2>
-        {%if submissions != None%}
+        {%if submissions%}
         <table border="1" style="border-collapse: collapse;">
             <thead>
                 <tr>
@@ -80,7 +80,7 @@
         <h2>
             Comments
         </h2>
-        {% if comments != None %}
+        {% if comments%}
         {% for comment in comments %}
         <h3>
             {{comment.title}}
@@ -103,7 +103,7 @@
                 var url_array = window.location.href.split('/');
                 var challenge_id = url_array[url_array.length - 1];
                 $.ajax({
-                    url: '/submit_comment/'+challenge_id, // URL for the POST request
+                    url: '/submit_comment/' + challenge_id, // URL for the POST request
                     method: 'POST',
                     data: $form.serialize(),
                     success: function (data) {
@@ -122,4 +122,5 @@
         });
     </script>
 </body>
+
 </html>
