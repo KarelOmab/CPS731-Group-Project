@@ -213,11 +213,11 @@
   
   <div class="card">
       <div class="card-header">
-          <h2 class="card-title">{{ challenge.name }}  {% if session['priviledge'] %}<a id = "edit_challenge_name"   onclick="editChallengeName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h2>
+          <h2 class="card-title">{{ challenge.name }}  {% if session['privileged_mode'] %}<a id = "edit_challenge_name"   onclick="editChallengeName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h2>
       </div>
       <div class="card-body">
-          <h5 class="card-title">Difficulty: {{ challenge.difficulty }}    {% if session['priviledge'] %}<a  id = 'edit-difficulty'  onclick = "editDifficultyLevel('{{ challenge.id }}')""  class="btn btn-link">Edit</a> {% endif %}</h5>
-          <p class="card-text">Description: {{ challenge.description }} {% if session['priviledge'] %}<a  onclick="editChallengeDiscription('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</p>
+          <h5 class="card-title">Difficulty: {{ challenge.difficulty }}    {% if session['privileged_mode'] %}<a  id = 'edit-difficulty'  onclick = "editDifficultyLevel('{{ challenge.id }}')""  class="btn btn-link">Edit</a> {% endif %}</h5>
+          <p class="card-text">Description: {{ challenge.description }} {% if session['privileged_mode'] %}<a  onclick="editChallengeDiscription('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</p>
           
           <!-- Challenge Examples -->
           <ul class="list-group mb-3">
@@ -232,7 +232,7 @@
                     <p style="display: inline;"> <i class="fas fa-arrow-right"></i></p>
                     <p style="display: inline;"> {{ test.test_output }}</p>
                   </div>
-                  {% if session['priviledge'] %}
+                  {% if session['privileged_mode'] %}
                     <a id = 'delete-test-case' name='{{ test.id }}'   onclick="deleteTestCase('{{challenge.id}}','{{test.id}}')"class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
                   {% endif %}
               </li>
@@ -240,7 +240,7 @@
           </ul>
 
           <!-- Add Test Case -->
-          {% if session['priviledge'] %}
+          {% if session['privileged_mode'] %}
           <h4 class="mb-3">Add Test Case</h4>
           <form action="{{ url_for('add_test_case', challenge_id=challenge.id) }}" method="post">
             <div class="form-row">
@@ -261,9 +261,9 @@
           {% endif %}
 
           <!-- Code Stub -->
-          <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}  {% if session['priviledge'] %}<a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h4>
+          <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}  {% if session['privileged_mode'] %}<a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h4>
           <h4 class="mb-3">Code Stub</h4>
-          {% if session['priviledge'] %}
+          {% if session['privileged_mode'] %}
             <form action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
           {% else %}
             <form action="" method="post">
@@ -273,12 +273,14 @@
                   <textarea class="form-control" id="codeStub" name="stub-block" rows="5"> {{ challenge.stub_block }}
                   </textarea>
               </div>
-              {% if session['priviledge'] %}
+              {% if session['privileged_mode'] %}
                 <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
               {% else %}
                 <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Sumit Solution</button>
               {% endif %}
           </form>
+
+          {% if not session['privileged_mode'] %}
           <div>
             <h4 class="mb-3">Submissions</h4>
             <li class="list-group-item">
@@ -287,37 +289,38 @@
               {% endif%}
   
               {% if submissions %}
-              {% for solution in submissions %}
-              <div class="container my-4">
-             
-                    <div class="card-header">
-                        <!-- Display username and the creation date of the comment -->
-                        <strong>{{ challenge.name }}</strong> submitted {{ solution.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
-                    </div>
-                    <div class="card-body">
-                        <!-- Display the title of the comment -->
-                        <h5 class="card-title"> Execution time: {{ solution.exec_time }} seconds</h5>
-                        <h5 class="card-title"> Executed characters: {{ solution.exec_chars }} characters</h5>
-                        <!-- Display the text of the comment -->
-                        <p class="card-text">{{ solution.exec_src }}</p>
-                    </div>
-                    <!-- To allow modertator to delete -->
-                    <div class="card-footer text-end">
-                        <!-- Delete button (you may want to include a confirmation before deletion) -->
-                        {% if session['priviledge'] %}
-                          <button class="btn btn-danger btn-sm" >Delete</button>
-                        {% endif %}
-                    </div>
-                </div>
-  
+                {% for solution in submissions %}
+                <div class="container my-4">
               
-            </div>
-            {% endfor %}
+                      <div class="card-header">
+                          <!-- Display username and the creation date of the comment -->
+                          <strong>{{ challenge.name }}</strong> submitted {{ solution.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                      </div>
+                      <div class="card-body">
+                          <!-- Display the title of the comment -->
+                          <h5 class="card-title"> Execution time: {{ solution.exec_time }} seconds</h5>
+                          <h5 class="card-title"> Executed characters: {{ solution.exec_chars }} characters</h5>
+                          <!-- Display the text of the comment -->
+                          <p class="card-text">{{ solution.exec_src }}</p>
+                      </div>
+                      <!-- To allow modertator to delete -->
+                      <div class="card-footer text-end">
+                          <!-- Delete button (you may want to include a confirmation before deletion) -->
+                          {% if session['privileged_mode'] %}
+                            <button class="btn btn-danger btn-sm" >Delete</button>
+                          {% endif %}
+                      </div>
+                  </div>
+    
+                
+              </div>
+              {% endfor %}
             {% endif%}
   
             </li>
   
           </div>
+          {% endif %}
          
           <div style = "padding: 1vw;">
             {% if session['userid'] %}
@@ -357,7 +360,7 @@
                   <!-- To allow modertator to delete -->
                   <div class="card-footer text-end">
                       <!-- Delete button (you may want to include a confirmation before deletion) -->
-                      {% if session['priviledge'] %}
+                      {% if session['privileged_mode'] %}
                         <button class="btn btn-danger btn-sm" onclick="deleteComment('{{ comment.id}}' , '{{challenge.id}}')">Delete</button>
                       {% endif %}
                   </div>

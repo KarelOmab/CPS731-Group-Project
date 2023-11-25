@@ -47,7 +47,7 @@
       </div>
       <div class="col-md-4">
         <h3>Showcase</h3>
-        <p>Show your coding prowess with completed challenges.</p>
+        <p>Show your coding process with completed challenges.</p>
       </div>
       <div class="col-md-4">
         <h3>Compete</h3>
@@ -55,11 +55,13 @@
       </div>
     </div>
 </div>
+{% if not 'username' in session %}
 <div class="container text-center my-5">
     <h2>Ready for the Challenge?</h2>
     <p>Sign up now to start solving problems and tracking your progress!</p>
-    <a class="btn btn-success btn-lg" href="" role="button">Sign Up Today</a>
+    <a class="btn btn-success btn-lg" href="/register" role="button">Sign Up Today</a>
 </div>
+{% endif %}
 
 
 
