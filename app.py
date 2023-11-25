@@ -1,17 +1,14 @@
 from flask import Flask, render_template, request,redirect, session,url_for, flash,jsonify, abort
-import os
-from dotenv import load_dotenv
-import sys
+from flask import request, redirect, url_for
+from flask import session
+from classes.util.cryptoservice import CryptoService
 from classes.util.sqlservice import SqlService
-from classes.util.cryptoservice import CryptoService # this is my import to test 
-from classes.challenge.challenge import Challenge
 
 class App:
     def __init__(self):
         load_dotenv()
         self.app = Flask(__name__)
-        self.app.secret_key = "super secret key"
-        #self.app.secret_key = os.environ.get("SECRET_KEY")
+        self.app.secret_key = 'dasdsahdkjsadhasjkhjkdhsajkd'
         
         # Routes setup
         self.setup_routes()
@@ -69,10 +66,10 @@ class App:
         Returns:
             A rendered template of 'register.html' which is the page where new users can register an account.
         """
-        pass
-
+        return render_template('register.html')
+    
     def register_user(self):
-        """
+        """ 
         Register a new user in the system.
 
         This method handles a POST request to register a new user by extracting 
@@ -94,8 +91,34 @@ class App:
             A rendered 'register.html' template with a message indicating the success
             or failure of the registration process.
         """
-        pass
 
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+            email = request.form.get('email_address')
+
+            if not all([email, username, password]):
+                return render_template('register.html', error_message='Please fill all fields')
+
+            hashed_password = CryptoService.hash_password(password)
+            
+            try:
+                # insert the account into the database
+                USERGROUP_USER = 3  #hardcoded here for now
+                result = SqlService.insert_account(usergroup=USERGROUP_USER, username=username, password=hashed_password, email=email)
+                result_message = result[0]['message']
+                # Check the result and display appropriate message
+                if result_message == 'Success':
+                    return render_template('register.html', success_message='Registration successful')
+                elif result_message == 'Username in use':
+                    return render_template('register.html', error_message='Username already in use'), 400
+                elif result_message == 'Email in use':
+                    return render_template('register.html', error_message='Email already in use'), 400
+            except Exception as e:
+            # Handle other exceptions (e.g., database connection issues)
+                render_template('register.html', error_message='An error occured while registering - please try again later'), 500
+        return redirect(url_for('register')), 403  # 403 Forbidden
+            
     def submit_login(self):
         """
         Process the login form submission and authenticate the user.
@@ -116,21 +139,35 @@ class App:
             A redirect to the 'index' route for a successful login, or a string 
             with an error message for a failed login attempt.
         """
-        username = request.form['username']
-        user_password = request.form['password']
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
 
-        user_accout = SqlService.get_account_by_username_password(username, CryptoService.hash_password(user_password))
+            if not all([username, password]):
+                return render_template('login.html', error_message='Please enter both username and password')
 
-        if user_accout:
-            session['username'] = user_accout.username
-            session['priviledge'] = user_accout.privileged_mode
-            session['userid'] = user_accout.id
+            hashed_password = CryptoService.hash_password(password)
 
+            try:
+                # Retrieve account from the database based on username and hashed password
+                account = SqlService.get_account_by_username_password(username, hashed_password)
 
-            return redirect(url_for('index'))
-        else:
-           return redirect(url_for('login'))
-         
+                if account:
+                    # Populate user's session with relevant information
+                    session['user_id'] = account.id
+                    session['username'] = account.username
+                    session['is_privileged'] = account.privileged_mode
+
+                    # Redirect to the index page after successful login
+                    return redirect(url_for('index'))
+                else:
+                    return render_template('login.html', error_message='Invalid username or password')
+            except Exception as e:
+                # Handle other exceptions (e.g., database connection issues)
+                return render_template('login.html', error_message='An error occurred during login - please try again later')
+
+        # If the request method is not POST, redirect to the login page
+        return redirect(url_for('login'))
 
     def logout(self):
         """

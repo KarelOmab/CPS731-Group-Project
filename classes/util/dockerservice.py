@@ -56,6 +56,17 @@ class DockerService:
                 - Any error or exception messages.
                 - Execution time and a flag indicating if the execution timed out.
         """
+        result_dict = {
+            'tests_total': len(tests),
+            'tests_passed': 0,
+            'print_outputs': [],
+            'error': "",
+            'exception': "",
+            'success': True,
+            'timeout': False,
+            'exec_time': 0.0,
+            'exec_chars': 0
+        }
         client = docker.from_env()
         appended_code_base = f"""
 def captured_print(*args, **kwargs):
@@ -130,24 +141,14 @@ print_outputs = []
             container.stop()  # Stop the container
             container.remove()  # Remove the container
 
-        result_dict = {
-            'tests_total': len(tests),
-            'tests_passed': 0,
-            'print_outputs': [],
-            'error': "",
-            'exception': "",
-            'success': True,
-            'timeout': False,
-            'exec_time': 0.0,
-            'exec_chars': 0
-        }
+        
         thread = threading.Thread(target=target, args=(result_dict,))
         thread.start()
         thread.join(timeout=challenge.time_allowed_sec)
         result_dict['exec_chars'] = len(user_code)
 
         if thread.is_alive():
-            result_dict['timeout'] = (result_dict['exec_time'] >= challenge.time_allowed_sec)
+            result_dict['timeout'] = True
             result_dict['success'] = False
 
         return result_dict
