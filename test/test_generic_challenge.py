@@ -2,8 +2,8 @@ import unittest
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from classes.util.sqlservice import SqlService
 from app import App
+from classes.util.sqlservice import SqlService
 
 
 class FlaskTestCase(unittest.TestCase):
@@ -28,26 +28,74 @@ class FlaskTestCase(unittest.TestCase):
         self.app_instance.get("/logout")
 
     # all tests will use challenge with id 1
-    # logged out tests
     def test_challenge_usable_logged_out(self):
         response = self.test_client.get('/challenges/1')
-        data=response.data.decode('utf-8')
-        self.assertIn("Sum", data)
-        self.assertIn("Difficulty: Easy", data)
-        self.assertIn("Description: Write a function named sum that takes two integers a and b and returns their sum.", data)
-        self.assertIn("Examples:", data)
-        self.assertIn("Comments", data)
+        data = response.data.decode('utf-8')
+        self.assertEqual(data.count("Sum"), 1)
+        self.assertEqual(data.count("Difficulty: Easy"), 1)
+        self.assertEqual(data.count(
+            "Description: Write a function named sum that takes two integers a and b and returns their sum."), 1)
+        self.assertEqual(data.count("Examples:"), 1)
+        self.assertEqual(data.count("Comments"), 1)
         self.assertNotIn("Submissions", data)
         self.assertNotIn("Add a Comment", data)
-    
+
     def test_challenge_usable_one_comment_logged_out(self):
         SqlService.insert_challenge_comment(2, 1, "test title", "test comment")
         response = self.test_client.get('/challenges/1')
-        data=response.data.decode('utf-8')
+        data = response.data.decode('utf-8')
         self.assertEqual(data.count("test title"), 1)
         self.assertEqual(data.count("test comment"), 1)
         self.assertEqual(data.count("Posted By:"), 1)
         self.delete_comments(1)
+
+    def test_challenge_usable_multiple_comments_logged_out(self):
+        SqlService.insert_challenge_comment(2, 1, "test title", "test comment")
+        SqlService.insert_challenge_comment(
+            2, 1, "test title2", "test comment2")
+        response = self.test_client.get('/challenges/1')
+        data = response.data.decode('utf-8')
+        self.assertEqual(data.count("test title"), 1)
+        self.assertEqual(data.count("test comment"), 1)
+        self.assertEqual(data.count("test title2"), 1)
+        self.assertEqual(data.count("test comment2"), 1)
+        self.assertEqual(data.count("Posted By:"), 2)
+        self.delete_comments(1)
+
+    def test_challenge_usable_one_submission_logged_in(self):
+        SqlService.insert_challenge_submission(1, 2, 1.0, len("test"), "test")
+        self.test_client.post('/submit_login', data={
+            "username": "test",
+            "password": "test"
+        })
+        response = self.test_client.get('/challenges/1')
+        data = response.data.decode('utf-8')
+        self.assertEqual(data.count("Submitted At"), 1)
+        self.assertEqual(data.count("Execution Time"), 1)
+        self.assertEqual(data.count("Characters"), 1)
+        self.assertEqual(data.count("1.0"), 1)
+        self.assertEqual(data.count("4"), 1)
+        self.delete_submissions(1, 2)
+
+    def test_challenge_usable_multiple_submissions_logged_in(self):
+        SqlService.insert_challenge_submission(1, 2, 1.0, len("test"), "test")
+        self.test_client.post('/submit_login', data={
+            "username": "test",
+            "password": "test"
+        })
+        SqlService.insert_challenge_submission(
+            1, 2, 2.0, len("test1"), "test1")
+        response = self.test_client.get('/challenges/1')
+        data = response.data.decode('utf-8')
+        self.assertEqual(data.count("Submitted At"), 1)
+        self.assertEqual(data.count("Execution Time"), 1)
+        self.assertEqual(data.count("Characters"), 1)
+        self.assertEqual(data.count("1.0"), 1)
+        self.assertEqual(data.count("2.0"), 1)
+        self.assertEqual(data.count("4"), 1)
+        self.assertEqual(data.count("5"), 1)
+        self.delete_submissions(1, 2)
+
 
 if __name__ == '__main__':
     unittest.main()
