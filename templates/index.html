@@ -1,11 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-100">
 <head>
     <meta charset="UTF-8">
-    <title>Welcome to the Python Coding Challenges</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Challenge Web Application</title>
+    <!-- Bootstrap CSS CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Bootstrap JS, Popper.js, and jQuery are included at the end of the body for performance reasons -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
-<body>
+<body class="d-flex flex-column h-100">
 {% include 'navbar.html' %}
-<h1>Welcome to the Python Coding Challenge</h1>
+<h1 style="text-align: center; color: lightblue; margin-top: 2vw;"> <code>Welcome to Coding Challenge Web Application</code></h1>
+<div class="jumbotron jumbotron-fluid" style="margin-top: 2vw;">
+    <div class="container text-center">
+      <h1 class="display-4">Challenge Your Python Skills</h1>
+      <p class="lead">Join a community where you can improve, showcase, and test your Python coding skills.</p>
+      <a class="btn btn-primary btn-lg" href="/challenges" role="button">Explore Challenges</a>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+      <div class="col-md-4">
+        <!-- Add an attractive image related to Python coding -->
+        <img src="https://cdn.activestate.com/wp-content/uploads/2021/12/python-coding-mistakes.jpg"  style = "border-radius: 5%;" class="img-fluid" alt="Python Challenges">
+        </div>
+      <div class="col-md-6">
+        <h2>What We Offer</h2>
+        <p>Coding Challenges Web Application  offers a diverse set of <strong>Python</strong> problems ranging from easy to hard difficulty levels. Sharpen your skills with our hands-on challenges and become a <strong>Python pro!</strong></p>
+      </div>
+      
+      
+    </div>
+</div>
+
+<div class="container text-center my-5">
+    <h2>Why Participate?</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <h3>Improve</h3>
+        <p>Boost your Python coding skills with targeted exercises.</p>
+      </div>
+      <div class="col-md-4">
+        <h3>Showcase</h3>
+        <p>Show your coding prowess with completed challenges.</p>
+      </div>
+      <div class="col-md-4">
+        <h3>Compete</h3>
+        <p>Help others to improve their skills through encouraging comments.</p>
+      </div>
+    </div>
+</div>
+<div class="container text-center my-5">
+    <h2>Ready for the Challenge?</h2>
+    <p>Sign up now to start solving problems and tracking your progress!</p>
+    <a class="btn btn-success btn-lg" href="" role="button">Sign Up Today</a>
+</div>
+
+
+
 </body>
+{% include 'footer.html' %}
 </html>

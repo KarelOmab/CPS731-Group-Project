@@ -1,10 +1,170 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-100">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
     <title>Create Challenge</title>
+
+    <script>
+      //This will update the test case Stub Name Labels
+      document.addEventListener('DOMContentLoaded', (event) => 
+      {
+          var inputElement = document.getElementById("stubName");
+          var outputElement = document.getElementsByClassName("stubLabel");
+
+          // Add an event listener for the 'input' event
+          inputElement.addEventListener("input", function() {
+            // Update the output element's innerHTML with the input's value
+            for(i=0; i < 3; i++)
+            {
+              outputElement[i].textContent = inputElement.value+": ";
+            }
+            
+          });
+        });
+
+        //This might be removed at the end, it only for testing purpose
+        function remove_added_test_case()
+        {
+         
+          var remove_div = document.getElementById('form-row-div');
+          remove_div.remove();
+        }
+
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+        var inputArea = document.getElementById("stubBlock");
+        var outputArea = document.getElementById("codeOutput");
+
+        inputArea.addEventListener("input", function() {
+          // Escape HTML to prevent XSS attacks
+          var escapedCode = this.value
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+          // Update the code output area and highlight
+          outputArea.textContent = escapedCode;
+          hljs.highlightElement(outputArea);
+        });
+      });
+
+      function addTestCase() 
+      {
+
+          var testCasesDiv = document.getElementById('testCases');
+          //<button class="btn btn-danger btn-sm float-right  style=color:white">Delete</button>
+          //This is for naming consistency
+          //name = "inputParameters[]"
+          //name = "expectedOutput[]"
+
+          var all_remove_buttons = document.getElementsByName('remove_button[]');
+          var i = 1;
+
+          if(all_remove_buttons.length == 0)
+          {
+            i += 3;
+          }
+
+          else
+          {
+            i = i + 3 + all_remove_buttons.length;
+            i 
+          }
+
+          var existing_labels = document.getElementsByClassName('stubLabel');
+          console.log(existing_labels);
+          // Create the wrapper div for the new test case input group
+          var newTestCase = document.createElement('div');
+          
+
+          newTestCase.setAttribute('class', 'form-row');
+          newTestCase.setAttribute('id', 'form-row-div');
+
+          // Creating a new label
+          var labelDiv = document.createElement('div');
+          labelDiv.setAttribute('class', 'form-group');
+          labelDiv.setAttribute('id', 'test-case-stub-name');
+          
+
+          var label = document.createElement('label');
+          label.setAttribute('for', 'inputParameters'); // 'for' should match the 'id' of the input it is associated with
+          label.textContent = existing_labels[0].innerHTML; // Corrected from label.text to label.textContent
+          label.setAttribute('class', 'stubLabel');
+
+          labelDiv.appendChild(label);
+
+          // Create the input parameters input
+          var inputDiv = document.createElement('div');
+          inputDiv.setAttribute('class', 'col');
+
+          var inputParamsInput = document.createElement('input');
+          inputParamsInput.setAttribute('type', 'text');
+          inputParamsInput.setAttribute('class', 'form-control');
+          inputParamsInput.setAttribute('placeholder', 'input parameters');
+          inputParamsInput.setAttribute('id', 'inputParameters'+i); // Ensure that this ID is unique for each test case
+          inputParamsInput.setAttribute('required','');
+          inputParamsInput.setAttribute('name','inputParameters[]');
+
+          inputDiv.appendChild(inputParamsInput);
+
+          // Create the output input
+          var outDiv = document.createElement('div');
+          outDiv.setAttribute('class', 'col');
+
+          var outputInput = document.createElement('input');
+          outputInput.setAttribute('type', 'text');
+          outputInput.setAttribute('class', 'form-control');
+          outputInput.setAttribute('placeholder', 'output');
+          outputInput.setAttribute('id', 'expectedOutput'+i); // Ensure that this ID is unique for each test case
+          outputInput.setAttribute('required','');
+          outputInput.setAttribute('name', 'expectedOutput[]');
+
+          outDiv.appendChild(outputInput);
+
+          
+          var remove_button_div = document.createElement('div');
+          
+          remove_button_div.setAttribute('class', 'col');
+
+          var remove_button = document.createElement('button');
+
+          remove_button.setAttribute('class', 'btn btn-danger btn-sm ');
+          remove_button.setAttribute('name','remove_button[]')
+          remove_button.textContent= "Remove";
+
+          //This will remove the added test case
+          remove_button.onclick = function(){ newTestCase.remove()};
+          
+          //remove_button.setAttribute('onclick', 'remove_added_test_case()');
+          
+          
+
+          remove_button_div.appendChild(remove_button);
+
+          // Append the label and inputs to the wrapper div
+          newTestCase.appendChild(labelDiv);
+          newTestCase.appendChild(inputDiv);
+          newTestCase.appendChild(outDiv);
+          newTestCase.appendChild(remove_button_div);
+
+          // Append the new test case to the test cases container
+          testCasesDiv.appendChild(newTestCase);
+      }
+
+        
+    </script>
 </head>
-<body>
+<body class="d-flex flex-column h-100">
 {% include 'navbar.html' %}
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
@@ -13,6 +173,85 @@
     {% endfor %}
   {% endif %}
 {% endwith %}
-<h1>Create a New Challenge</h1>
+<div class="container mt-5">
+  <h2>Create a New Challenge</h2>
+  <form id="new-challenge-form", method="POST" action="/submit_challenge">
+      <div class="form-group">
+          <label  for="challengeName">Name:</label>
+          <input name = "challengeName" type="text" class="form-control" id="challengeName" placeholder="Enter challenge name" required maxlength="255">
+      </div>
+      <div class="form-group">
+          <label for="challengeDifficulty">Difficulty:</label>
+          <select name = "challengeDifficulty" class="form-control" id="challengeDifficulty">
+              <option>Easy</option>
+              <option>Medium</option>
+              <option>Hard</option>
+          </select>
+      </div>
+      <div class="form-group">
+          <label for="challengeDescription">Description:</label>
+          <textarea name = "challengeDescription" class="form-control" id="challengeDescription" rows="3"></textarea required>
+      </div>
+      <div class="form-group">
+          <label for="stubName">Stub Name:</label>
+          <input name = "stubName"  type="text" class="form-control" id="stubName" placeholder="Enter stub name" required>
+      </div>
+      <div class="form-group">
+          <label for="stubBlock">Stub Block:</label>
+          <textarea name = "stubBlock" class="form-control" id="stubBlock" rows="3"></textarea required>
+          <pre><code id="codeOutput" class="python"></code></pre>
+      </div>
+      <div class="form-group">
+          <label for="timeAllowed">Time Allowed (seconds):</label>
+          <input name = "timeAllowed" type="number" class="form-control" id="timeAllowed" placeholder="Enter time in seconds" required>
+      </div>
+      <div  style="border: solid 0.5vw; padding: 1vw; margin-top: 1vp; margin-bottom: 1vp;">
+        <h3>Test Cases:</h3>
+        <div id="testCases">
+          <div class="form-row">
+            <div class="form-group">
+              <label class = "stubLabel" for="stubName">function </label>
+            </div>
+            <div class="col">
+              <input name = "inputParameters[]" type="text" class="form-control" id="inputParameters1" placeholder="input parameters" required>
+            </div>
+            <div class="col">
+              <input name = "expectedOutput[]" type="text" class="form-control" id="expectedOutput1" placeholder="output"  required>
+            </div>
+            
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class = "stubLabel" for="stubName">function </label>
+            </div>
+            <div class="col">
+              <input name = "inputParameters[]" type="text" class="form-control" id="inputParameters2" placeholder="input parameters" required>
+            </div>
+            <div class="col">
+              <input name = "expectedOutput[]" type="text" class="form-control" id="expectedOutput2" placeholder="output" required>
+            </div>
+            
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class = "stubLabel" for="stubName">function </label>
+            </div>
+            <div class="col">
+              <input name = "inputParameters[]" type="text" class="form-control" id="inputParameters3" placeholder="input parameters" required>
+            </div>
+            <div class="col">
+              <input name = "expectedOutput[]" type="text" class="form-control" id="expectedOutput3" placeholder="output" required>
+            </div>
+            
+          </div>
+          <!-- Repeat the above div for more test cases as needed -->
+        </div>
+          <button style= "margin-top: 0.3vp; margin-bottom: 0.3vp;" type="button" class="btn btn-primary mb-2" onclick="addTestCase()">Add Test Case</button>
+      </div>
+      
+      <button  style = "margin-top: 1vw;" type="submit" class="btn btn-success">Create Challenge</button>
+  </form>
+</div>
 </body>
+{% include 'footer.html' %}
 </html>

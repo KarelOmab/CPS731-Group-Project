@@ -1,10 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request,redirect, session,url_for, flash,jsonify, abort
 from flask import request, redirect, url_for
 from flask import session
 from classes.util.cryptoservice import CryptoService
 from classes.util.sqlservice import SqlService
-import os
-from dotenv import load_dotenv
 
 class App:
     def __init__(self):
@@ -22,7 +20,8 @@ class App:
         self.app.add_url_rule('/logout', 'logout', self.logout)
         self.app.add_url_rule('/login', 'login', self.login)
         self.app.add_url_rule('/submit_login', 'submit_login', self.submit_login, methods=['POST'])
-        self.app.add_url_rule('/challenges', 'challenges', self.challenges)
+        self.app.add_url_rule('/challenges', 'challenges', self.challenges) # I added the methods=['POST']
+        self.app.add_url_rule('/sort_challenges/<sorting_criteria>', 'sort_challenges', self.sort_challenges, methods=['POST'])
         self.app.add_url_rule('/insert_challenge', 'insert_challenge', self.insert_challenge)
         self.app.add_url_rule('/submit_challenge', 'submit_challenge', self.submit_challenge, methods=['POST'])
         self.app.add_url_rule('/submission/<int:challenge_id>', 'submission', self.submission, methods=['POST'])
@@ -35,9 +34,8 @@ class App:
         self.app.add_url_rule('/edit_challenge_stub-name/<int:challenge_id>', 'edit_challenge_stub_name', self.edit_challenge_stub_name, methods=['POST'])
         self.app.add_url_rule('/edit_challenge_stub-block/<int:challenge_id>', 'edit_challenge_stub_block', self.edit_challenge_stub_block, methods=['POST'])
         self.app.add_url_rule('/add_test_case/<int:challenge_id>', 'add_test_case', self.add_test_case, methods=['POST'])
-        self.app.add_url_rule('/delete-test-case/<int:challenge_id>/<int:test_case_id>', 'delete_test_case', self.delete_test_case, methods=['POST'])
-        self.app.add_url_rule('/delete-comment/<int:challenge_id>/<int:comment_id>', 'delete_comment', self.delete_comment, methods=['POST'])
-
+        self.app.add_url_rule('/delete_test_case/<int:challenge_id>/<int:test_case_id>', 'delete_test_case', self.delete_test_case, methods=['POST'])
+        self.app.add_url_rule('/delete_comment/<int:challenge_id>/<int:comment_id>', 'delete_comment', self.delete_comment, methods=['POST'])
 
     def index(self):
         """
@@ -46,6 +44,19 @@ class App:
         Returns:
             A rendered template of 'index.html' which is the home page of the website.
         """
+        '''create_table_query = r"""
+                    CREATE TABLE users (
+                        user_id INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(255) NOT NULL UNIQUE,
+                        email VARCHAR(255) NOT NULL UNIQUE,
+                        password VARCHAR(255) NOT NULL
+                    );
+                    """ '''
+        #SqlService.insert_account(2,'dan',CryptoService.hash_password('1234'),'daniel.gashaw@torontomu.ca')
+        #SqlService.insert_account(3,'daniel',CryptoService.hash_password('1234'),'nigussiedanieltoronto@gmail.com')
+
+        #here we want to make sure that the first time challenges are displayed, they are sorted by difficulty
+        session['sorting_criteria'] = 'difficulty'
         return render_template('index.html')
 
     def register(self):
@@ -173,7 +184,9 @@ class App:
         Returns:
             A redirect to the 'index' route, which is the default page users see after logging out.
         """
-        pass
+        session.clear()
+        return redirect(url_for('index'))
+
 
     def login(self):
         """
@@ -188,6 +201,17 @@ class App:
         """
         return render_template('login.html')
 
+    def sort_challenges(self,sorting_criteria):
+        """
+            whenn the user selects how the challenges displayed to be sorted, we want
+            set a session variable to, and redirect to the challenge page so that the 
+            challenges are displayed based on the new user sorting_criteria
+        """
+        session['sorting_criteria'] = sorting_criteria
+        return redirect(url_for('challenges'))
+       
+        
+    
     def challenges(self):
         """
         Display all available challenges.
@@ -201,7 +225,20 @@ class App:
             An HTML page rendered from the 'challenges.html' template with all
             challenges passed as a context variable.
         """
-        pass
+
+        #fetch all the challenges
+        challenges = SqlService.get_all_challenges()
+
+        #Sort the challenges by name
+        if( session['sorting_criteria'] == 'name'):
+            challenges = sorted(challenges, key=lambda x: x.name)
+            
+        #Sorting the challenges by their difficulty level
+        else:
+            difficulty_mapping = {'Easy': 1, 'Medium': 2, 'Hard': 3}
+            challenges.sort(key=lambda x: difficulty_mapping.get(x.difficulty, 0))
+
+        return render_template("challenges.html", challenges = challenges)
 
     def insert_challenge(self):
         """
@@ -214,7 +251,7 @@ class App:
         Returns:
             An HTML page rendered from the 'insert_challenge.html' template.
         """
-        pass
+        return render_template("insert_challenge.html")
 
     def submit_challenge(self):
         """
@@ -240,7 +277,38 @@ class App:
             A redirect to the 'insert_challenge' route, potentially with flash messages
             indicating the status of the challenge creation (success or error).
         """
-        pass
+
+        # Access the new challenge informations
+        challenge_name = request.form['challengeName']
+        challenge_difficulty = request.form['challengeDifficulty']
+        challenge_description = request.form['challengeDescription']
+        stub_name = request.form['stubName']
+        stub_block = request.form['stubBlock']
+        time_allowed = request.form['timeAllowed']
+
+        # For the dynamic test cases, you might use a prefix and loop over them
+      
+        input_test_cases = request.form.getlist('inputParameters[]')
+        output_test_cases = request.form.getlist('expectedOutput[]')
+       
+        # Process the new challenge to the database
+        try:
+            if session['priviledge']:
+                last_id = SqlService.insert_challenge(session['userid'],challenge_name,challenge_difficulty, challenge_description, stub_name, stub_block,time_allowed)
+
+                #inserting a challenge test cases
+                for input_case, output_case in zip(input_test_cases,output_test_cases):
+                    last_id_inserted = SqlService.insert_challenge_test(last_id[0]['LAST_INSERT_ID()'],input_case,output_case)
+            
+
+                if last_id != None:
+                    challenges = SqlService.get_all_challenges()
+
+        except RuntimeError as err:
+            print(f"Error! {err}")
+
+        return redirect(url_for('challenges')) 
+    
 
     def submission(self, challenge_id):
         """
@@ -296,7 +364,18 @@ class App:
             The 'challenge.html' template rendered with the challenge details, tests, comments, and user
             submission data (if the user is logged in and has submission data).
         """
-        pass
+        #Get the challenge details
+        challenge = SqlService.get_challenge_by_id(challenge_id)
+
+        #Get the challenge test cases
+        testcases = SqlService.get_challenge_tests_by_id(challenge_id)
+        comments = SqlService.get_challenge_comments_by_id(challenge_id)
+        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, 1)
+
+        if challenge:
+            return render_template('challenge.html', challenge=challenge, testcases=testcases, comments = comments, submissions = submissions)
+        else: 
+            return abort(404)
 
     def submit_comment(self, challenge_id):
         """
@@ -318,8 +397,29 @@ class App:
             A redirect to the challenge page with a flash message indicating the outcome of the comment
             submission attempt.
         """
-        pass
-        
+
+        #once the session variable is set I am going to check if the user is looged in
+        #For now I am assuming the user id is 1
+
+        if session['userid']:
+            try:
+                comment_title = request.form['comment-title']
+                comment_content = request.form['comment-content']
+
+                #If the user enters an empty title or comment 
+                if(comment_title == None or comment_content == None):
+                    return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+                
+                #Inserting the comment to the challenge
+                else:
+                    insert_id = SqlService.insert_challenge_comment(session['userid'],challenge_id, comment_title, comment_content)
+
+            except RuntimeError as err:
+                print(f"Error! {err}")
+                
+
+        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+    
 
     def delete_challenge(self, challenge_id):
         """
@@ -337,7 +437,15 @@ class App:
             A redirect to the challenges overview page with a flash message indicating the outcome of the
             deletion attempt.
         """
-        pass
+        try:
+            if session['priviledge']:
+                delete_confirmation = SqlService.delete_challenge_by_id(challenge_id)
+
+            #delete_test_confirmation = SqlService.get_challenge_test_by_id(challenge_id)
+          
+        except RuntimeError as err:
+            print(f"Error! {err}")
+        return redirect(url_for('challenges'))
 
     def edit_challenge_name(self, challenge_id):
         """
@@ -354,7 +462,23 @@ class App:
             A JSON response indicating success or failure of the update operation. If the user does not
             have the necessary permissions, it returns a 403 status code and a failure message.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            #return_value = SqlService.update_challenge_name_by_id(challenge_id)
+            new_challenge_name = request.json
+
+            if session['priviledge']:
+                SqlService.update_challenge_name_by_id(challenge_id, new_challenge_name['new_challenge_name'])
+                return jsonify({'message': 'ok'}), 200
+        except RuntimeError as err:
+            print(f"Error occurred while updating challenge name! {err}")
+        
+        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+
+
+        
 
     def edit_challenge_difficulty(self, challenge_id):
          """
@@ -367,7 +491,18 @@ class App:
             A JSON response indicating whether the update was successful, with an HTTP status code
             of 200 for success or 403 for permission denied. Flash messages provide user feedback.
         """
-         pass
+         try:
+            new_difficulty_level = request.json
+
+            if session['priviledge']:
+                SqlService.update_challenge_difficulty_by_id(challenge_id,new_difficulty_level['newValue'])
+                return jsonify({'message': 'ok'}), 200
+         except:
+             return jsonify({'message': 'unautorized user'}), 403
+        
+             
+         
+       
 
     def edit_challenge_description(self, challenge_id):
         """
@@ -380,7 +515,22 @@ class App:
             A JSON response indicating the outcome of the update with an HTTP status code of 200
             for success or 403 for permission denied. Flash messages provide feedback to the user.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            #return_value = SqlService.update_challenge_name_by_id(challenge_id)
+            new_challenge_discr = request.json
+
+            if session['priviledge']:
+                SqlService.update_challenge_description_by_id(challenge_id, new_challenge_discr['new_challenge_discr'])
+                return jsonify({'message': 'ok'}), 200
+        
+        except RuntimeError as err:
+            print(f"Error occurred while updating challenge name! {err}")
+        
+        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+
 
     def edit_challenge_stub_name(self, challenge_id):
         """
@@ -393,7 +543,22 @@ class App:
             A JSON response indicating the success status of the update, with an HTTP status code of 200
             for success or 403 for permission denied. Flash messages provide feedback on the action's outcome.
         """
-        pass
+         #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            #return_value = SqlService.update_challenge_name_by_id(challenge_id)
+            new_stub_name = request.json
+
+            if session['priviledge']:
+                SqlService.update_challenge_stub_name_by_id(challenge_id, new_stub_name['stub_name'])
+                return jsonify({'message': 'ok'}), 200
+        
+        except RuntimeError as err:
+            print(f"Error occurred while updating challenge name! {err}")
+        
+        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+
 
     def edit_challenge_stub_block(self, challenge_id):
         """
@@ -406,7 +571,22 @@ class App:
             A JSON response indicating success or failure of the update, with corresponding flash messages
             and an HTTP status code of 200 for success or 403 for permission denied.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            new_stub_block = request.form['stub-block']
+            
+            if session['priviledge']:
+                SqlService.update_challenge_stub_block_by_id(challenge_id, new_stub_block)
+                #returning an Okay message to the caller
+                return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
+           
+
+        except RuntimeError as err:
+            print(f"Error occurred adding new test case. {err}")
+        
+        return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
 
     def add_test_case(self, challenge_id):
         """
@@ -419,9 +599,23 @@ class App:
             A JSON response indicating whether the test case was successfully added, with an HTTP status code
             of 200 for success or 403 for permission denied. Flash messages provide user feedback.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
 
-    def delete_test_case(self, challenge_id, test_case_id):
+        try:
+            input_parameter = request.form['inputParameters[]']
+            output_parameter = request.form['expectedOutput[]']
+
+            if session['priviledge']:
+                SqlService.insert_challenge_test(challenge_id, input_parameter, output_parameter)
+           
+        except RuntimeError as err:
+            print(f"Error occurred adding new test case. {err}")
+        
+        return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
+        
+
+    def delete_test_case(self, challenge_id, test_case_id): 
         """
         Deletes a test case from a challenge if the user has the necessary privileges.
 
@@ -433,9 +627,22 @@ class App:
             A JSON response indicating the success or failure of the deletion, with an HTTP status code of 200
             for success or 403 for permission denied. Flash messages provide feedback on the outcome.
         """
-        pass
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
 
-    def delete_comment(self, challenge_id, comment_id):
+        try:
+            if session['priviledge']:
+                SqlService.delete_challenge_test_by_id_and_challenge_id(test_case_id, challenge_id)
+                return jsonify({'message': 'ok'}), 200
+
+        except RuntimeError as err:
+            print(f"Error has occurred while deleting a test case. {err}")
+
+        redirect(url_for('generic_challenge', challenge_id=challenge_id))
+        
+        
+
+    def delete_comment(self, challenge_id, comment_id): 
         """
         Deletes a comment from a challenge if the user has privileged access.
 
@@ -447,7 +654,18 @@ class App:
             A JSON response indicating the outcome of the deletion attempt, with an HTTP status code of 200
             for success or 403 for permission denied. Flash messages provide feedback to the user.
         """
-        pass
+
+        #agin here I do not have a session variable set yet to check the user privileged acess
+        #It will be included once the session variable is created
+
+        try:
+            if session['priviledge']:
+                SqlService.delete_challenge_comment_by_id_and_challenge_id(comment_id, challenge_id)
+            
+        except RuntimeError as err:
+            print(f'Error Deleting Comment! {err}')
+        return  redirect(url_for('generic_challenge', challenge_id=challenge_id))
+
         
     def run(self, **kwargs):
         self.app.run(**kwargs)
