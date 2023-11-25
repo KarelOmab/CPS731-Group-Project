@@ -1,4 +1,8 @@
 from flask import Flask, render_template
+from flask import request, redirect, url_for
+from flask import session
+from classes.util.cryptoservice import CryptoService
+from classes.util.sqlservice import SqlService
 import os
 from dotenv import load_dotenv
 
@@ -6,7 +10,7 @@ class App:
     def __init__(self):
         load_dotenv()
         self.app = Flask(__name__)
-        self.app.secret_key = os.environ.get("SECRET_KEY")
+        self.app.secret_key = 'dasdsahdkjsadhasjkhjkdhsajkd'
         
         # Routes setup
         self.setup_routes()
@@ -51,10 +55,10 @@ class App:
         Returns:
             A rendered template of 'register.html' which is the page where new users can register an account.
         """
-        pass
-
+        return render_template('register.html')
+    
     def register_user(self):
-        """
+        """ 
         Register a new user in the system.
 
         This method handles a POST request to register a new user by extracting 
@@ -76,8 +80,40 @@ class App:
             A rendered 'register.html' template with a message indicating the success
             or failure of the registration process.
         """
-        pass
 
+        if request.method == 'POST':
+            first_name = request.form.get('first_name')
+            last_name = request.form.get('last_name')
+            email = request.form.get('email_address')
+            username = request.form.get('username')
+            password = request.form.get('password')
+            confirm_password = request.form.get('confirm_password')
+
+            hashed_password = CryptoService.hash_password(password)
+
+            if not all([first_name, last_name, email, username, password, confirm_password]):
+                return render_template('register.html', error_message='Please fill all fields')
+
+            if password != confirm_password:
+                return render_template('register.html', error_message='Passwords do not match')
+
+            try:
+            # insert the account into the database
+                result = SqlService.insert_account(usergroup=3, username=username, password=hashed_password, email=email)
+
+                # Check the result and display appropriate message
+                if result == 'Success':
+                    return render_template('register.html', success_message='Registration successful')
+                elif result == 'Username in use':
+                    return render_template('register.html', error_message='Username already in use'), 400
+                elif result == 'Email in use':
+                    return render_template('register.html', error_message='Email already in use'), 400
+            except Exception as e:
+            # Handle other exceptions (e.g., database connection issues)
+                result == 'False'
+                render_template('register.html', error_message='An error occured while registering - please try again later'), 500
+        return redirect(url_for('register')), 403  # 403 Forbidden
+            
     def submit_login(self):
         """
         Process the login form submission and authenticate the user.
@@ -98,7 +134,35 @@ class App:
             A redirect to the 'index' route for a successful login, or a string 
             with an error message for a failed login attempt.
         """
-        pass
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+
+            if not all([username, password]):
+                return render_template('login.html', error_message='Please enter both username and password')
+
+            hashed_password = CryptoService.hash_password(password)
+
+            try:
+                # Retrieve account from the database based on username and hashed password
+                account = SqlService.get_account_by_username_password(username, hashed_password)
+
+                if account:
+                    # Populate user's session with relevant information
+                    session['user_id'] = account['id']
+                    session['username'] = account['username']
+                    session['is_privileged'] = account['usergroup_id'] == 3
+
+                    # Redirect to the index page after successful login
+                    return redirect(url_for('index'))
+                else:
+                    return render_template('login.html', error_message='Invalid username or password')
+            except Exception as e:
+                # Handle other exceptions (e.g., database connection issues)
+                return render_template('login.html', error_message='An error occurred during login - please try again later')
+
+        # If the request method is not POST, redirect to the login page
+        return redirect(url_for('login'))
 
     def logout(self):
         """
@@ -128,7 +192,7 @@ class App:
         Returns:
             An HTML page rendered from the 'login.html' template.
         """
-        pass
+        return render_template('login.html')
 
     def challenges(self):
         """
