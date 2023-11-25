@@ -143,9 +143,9 @@ class App:
 
                 if account:
                     # Populate user's session with relevant information
-                    session['user_id'] = account['id']
-                    session['username'] = account['username']
-                    session['is_privileged'] = account['usergroup_id'] == 3
+                    session['user_id'] = account.id
+                    session['username'] = account.username
+                    session['is_privileged'] = account.privileged_mode
 
                     # Redirect to the index page after successful login
                     return redirect(url_for('index'))
