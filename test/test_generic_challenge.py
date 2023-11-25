@@ -76,6 +76,7 @@ class FlaskTestCase(unittest.TestCase):
         self.assertEqual(data.count("1.0"), 1)
         self.assertEqual(data.count("4"), 1)
         self.delete_submissions(1, 2)
+        self.logout()
 
     def test_challenge_usable_multiple_submissions_logged_in(self):
         SqlService.insert_challenge_submission(1, 2, 1.0, len("test"), "test")
@@ -95,6 +96,7 @@ class FlaskTestCase(unittest.TestCase):
         self.assertEqual(data.count("4"), 1)
         self.assertEqual(data.count("5"), 1)
         self.delete_submissions(1, 2)
+        self.logout()
 
 
 if __name__ == '__main__':
