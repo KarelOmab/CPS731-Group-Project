@@ -3,27 +3,41 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <meta http-equiv="X-UA-Compatible" content="IE-Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title> Sign Up </title>
 </head>
-
-<body>
-    {% include 'navbar.html' %}
-    <h2>Login</h2>
-    <form action="/submit_login" method="post">
-        <div>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+<body class="bg-light">
+    <div class="container">
+        <div class="row mt-5">
+            <div class="col-lg-4 bg-white m-auto rounded-top wrapper">
+                <h2 class="text-center pt-3">Login</h2>
+                <p class="text-center text-muted lead"> Start your journey to improve your coding skills!</p>
+                <form action="{{ url_for('submit_login') }}" method="POST">
+                    {% if error_message%}
+                        <div class ="alert alert-danger text-center" role="alert">
+                            {{ error_message }}
+                        </div>
+                    {% endif %}   
+                    <div class = "input-group mb-3">
+                        <span class="input-group-text"><i class="fa fa-user"></i></span>
+                        <input type="text" class="form-control" name="username" placeholder="Username" />
+                    </div>
+                    <div class = "input-group mb-3">
+                        <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                        <input type="password" class="form-control" name="password" placeholder="Password" />
+                    </div>
+                    <div class="d-grid text-center">
+                        <button type="submit" class="btn btn-success">Login</button>
+                        <p class="text-center text-muted mt-2">
+                            Don't have an account? <a href="{{ url_for('register') }}">Sign Up Here</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <div>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-
-        <div>
-            <input type="submit" value="Login">
-        </div>
-    </form>
+    </div>
 </body>
-
+{% include 'footer.html'%}
 </html>

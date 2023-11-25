@@ -28,6 +28,3 @@ class TestUser(unittest.TestCase):
         # Test the string representation of the user object
         expected_str = "id:2, username:bob, privileged_mode:False"
         self.assertEqual(str(self.user), expected_str)
-
-if __name__ == '__main__':
-    unittest.main()
