@@ -82,35 +82,29 @@ class App:
         """
 
         if request.method == 'POST':
-            first_name = request.form.get('first_name')
-            last_name = request.form.get('last_name')
-            email = request.form.get('email_address')
             username = request.form.get('username')
             password = request.form.get('password')
-            confirm_password = request.form.get('confirm_password')
+            email = request.form.get('email_address')
 
-            hashed_password = CryptoService.hash_password(password)
-
-            if not all([first_name, last_name, email, username, password, confirm_password]):
+            if not all([email, username, password]):
                 return render_template('register.html', error_message='Please fill all fields')
 
-            if password != confirm_password:
-                return render_template('register.html', error_message='Passwords do not match')
-
+            hashed_password = CryptoService.hash_password(password)
+            
             try:
-            # insert the account into the database
-                result = SqlService.insert_account(usergroup=3, username=username, password=hashed_password, email=email)
-
+                # insert the account into the database
+                USERGROUP_USER = 3  #hardcoded here for now
+                result = SqlService.insert_account(usergroup=USERGROUP_USER, username=username, password=hashed_password, email=email)
+                result_message = result[0]['message']
                 # Check the result and display appropriate message
-                if result == 'Success':
+                if result_message == 'Success':
                     return render_template('register.html', success_message='Registration successful')
-                elif result == 'Username in use':
+                elif result_message == 'Username in use':
                     return render_template('register.html', error_message='Username already in use'), 400
-                elif result == 'Email in use':
+                elif result_message == 'Email in use':
                     return render_template('register.html', error_message='Email already in use'), 400
             except Exception as e:
             # Handle other exceptions (e.g., database connection issues)
-                result == 'False'
                 render_template('register.html', error_message='An error occured while registering - please try again later'), 500
         return redirect(url_for('register')), 403  # 403 Forbidden
             
