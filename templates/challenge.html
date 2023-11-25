@@ -53,9 +53,9 @@
             {% for submission in submissions %}
             <tbody>
                 <tr>
-                    <td>submission.created_at</td>
-                    <td>submission.exec_time</td>
-                    <td>submission.exec_chars</td>
+                    <td>{{submission.created_at}}</td>
+                    <td>{{submission.exec_time}}</td>
+                    <td>{{submission.exec_chars}}</td>
                 </tr>
             </tbody>
             {% endfor %}
