@@ -270,9 +270,8 @@ class App:
         except RuntimeError as err:
             print(f"Error! {err}")
 
-        #inserting the challenge 
-        #return redirect(url_for('challenges'), messages="Challenge added successfully") 
-        return render_template('challenges.html',challenges = challenges, messages="Challenge added successfully" )
+        return redirect(url_for('challenges')) 
+    
 
     def submission(self, challenge_id):
         """
@@ -380,7 +379,7 @@ class App:
 
             except RuntimeError as err:
                 print(f"Error! {err}")
-                return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+                
 
         return redirect(url_for('generic_challenge', challenge_id=challenge_id))
     
