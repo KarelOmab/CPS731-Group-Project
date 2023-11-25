@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request,redirect, session,url_for, flash,jsonify, abort
+import os
+from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify, abort
 from flask import request, redirect, url_for
-from flask import session
-from classes.util.cryptoservice import CryptoService
-from classes.util.sqlservice import SqlService
 from dotenv import load_dotenv
+from classes.util.sqlservice import SqlService
+from classes.util.cryptoservice import CryptoService
 
 class App:
     def __init__(self):
@@ -45,18 +45,6 @@ class App:
         Returns:
             A rendered template of 'index.html' which is the home page of the website.
         """
-        '''create_table_query = r"""
-                    CREATE TABLE users (
-                        user_id INT AUTO_INCREMENT PRIMARY KEY,
-                        username VARCHAR(255) NOT NULL UNIQUE,
-                        email VARCHAR(255) NOT NULL UNIQUE,
-                        password VARCHAR(255) NOT NULL
-                    );
-                    """ '''
-        #SqlService.insert_account(2,'dan',CryptoService.hash_password('1234'),'daniel.gashaw@torontomu.ca')
-        #SqlService.insert_account(3,'daniel',CryptoService.hash_password('1234'),'nigussiedanieltoronto@gmail.com')
-
-        #here we want to make sure that the first time challenges are displayed, they are sorted by difficulty
         session['sorting_criteria'] = 'difficulty'
         return render_template('index.html')
 
@@ -188,7 +176,6 @@ class App:
         """
         session.clear()
         return redirect(url_for('index'))
-
 
     def login(self):
         """
@@ -399,29 +386,15 @@ class App:
             A redirect to the challenge page with a flash message indicating the outcome of the comment
             submission attempt.
         """
-
-        #once the session variable is set I am going to check if the user is looged in
-        #For now I am assuming the user id is 1
-
         if session['user_id']:
-            try:
-                comment_title = request.form['comment-title']
-                comment_content = request.form['comment-content']
-
-                #If the user enters an empty title or comment 
-                if(comment_title == None or comment_content == None):
-                    return redirect(url_for('generic_challenge', challenge_id=challenge_id))
-                
-                #Inserting the comment to the challenge
-                else:
-                    insert_id = SqlService.insert_challenge_comment(session['user_id'],challenge_id, comment_title, comment_content)
-
-            except RuntimeError as err:
-                print(f"Error! {err}")
-                
-
-        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
-    
+            title = request.form.get('commentTitle')
+            text = request.form.get('commentText')
+            if title and text:
+                SqlService.insert_challenge_comment(session['user_id'], challenge_id, title, text)
+                return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+            else:
+                flash('Please provide a title and text for your comment')
+                return redirect(url_for('generic_challenge', challenge_id=challenge_id))
 
     def delete_challenge(self, challenge_id):
         """
@@ -674,5 +647,6 @@ class App:
 
 if __name__ == '__main__':
     my_app = App()
+    
     my_app.run(debug=True)
     
