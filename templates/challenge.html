@@ -211,46 +211,6 @@
   {% endif %}
 {% endwith %}
 
-    {% if session['user_id'] %}
-    <div>
-        <h2>Add a Comment</h2>
-        <form id="newCommentForm">
-            <label for="commentTitle">Title:</label><br>
-            <input type="text" id="commentTitle" name="commentTitle"><br>
-            <label for="commentText">Comment:</label><br>
-            <textarea id="commentText" name="commentText" rows="4" cols="50"></textarea><br>
-            <input type="submit" value="Submit Comment">
-        </form>
-    </div>
-    {% endif %}
-    <script>
-        $(document).ready(function () {
-            $('#newCommentForm').on('submit', function (event) {
-                event.preventDefault(); // Prevent default form submission
-
-                var $form = $(this);
-                var url_array = window.location.href.split('/');
-                var challenge_id = url_array[url_array.length - 1];
-                $.ajax({
-                    url: '/submit_comment/' + challenge_id, // URL for the POST request
-                    method: 'POST',
-                    data: $form.serialize(),
-                    success: function (data) {
-                        console.log("success");
-                        $('html').html(data);
-                    },
-                    error: function (xhr) {
-                        console.log("error");
-                        console.log(xhr);
-                    },
-                    complete: function (xhr, textStatus) {
-                        console.log('Request completed with status:', textStatus);
-                    }
-                });
-            });
-        });
-    </script>
-
 <div class="container mt-3">
   <div style = "padding: 10px; margin: 10px 0; text-align: center; " id="flash-message-container"></div>
   
@@ -320,7 +280,7 @@
               {% if session['privileged_mode'] %}
                 <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
               {% else %}
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Sumit Solution</button>
+                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Solution</button>
               {% endif %}
           </form>
 
@@ -367,7 +327,7 @@
           {% endif %}
          
           <div style = "padding: 1vw;">
-            {% if session['userid'] %}
+            {% if session['user_id'] %}
               <h4 class="mb-3">Add a Comment</h4>
               <form action="{{ url_for('submit_comment', challenge_id=challenge.id) }}" method="post">
                 <div class="form-group">

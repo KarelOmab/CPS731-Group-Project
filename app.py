@@ -146,7 +146,6 @@ class App:
                     session['user_id'] = account.id
                     session['username'] = account.username
                     session['privileged_mode'] = account.privileged_mode
-                    print(session)
 
                     # Redirect to the index page after successful login
                     return redirect(url_for('index'))
@@ -387,14 +386,23 @@ class App:
             submission attempt.
         """
         if session['user_id']:
-            title = request.form.get('commentTitle')
-            text = request.form.get('commentText')
-            if title and text:
-                SqlService.insert_challenge_comment(session['user_id'], challenge_id, title, text)
-                return redirect(url_for('generic_challenge', challenge_id=challenge_id))
-            else:
-                flash('Please provide a title and text for your comment')
-                return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+            try:
+                comment_title = request.form['comment-title']
+                comment_content = request.form['comment-content']
+
+                #If the user enters an empty title or comment 
+                if(comment_title == None or comment_content == None):
+                    return redirect(url_for('generic_challenge', challenge_id=challenge_id))
+                
+                #Inserting the comment to the challenge
+                else:
+                    insert_id = SqlService.insert_challenge_comment(session['user_id'],challenge_id, comment_title, comment_content)
+
+            except RuntimeError as err:
+                print(f"Error! {err}")
+                
+
+        return redirect(url_for('generic_challenge', challenge_id=challenge_id))
 
     def delete_challenge(self, challenge_id):
         """
