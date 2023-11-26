@@ -357,7 +357,6 @@ class App:
             ), 400
 
         result_dict = DockerService.execute_code(challenge, tests, user_code)
-        print("result_dict", result_dict)
         output_str = "\n".join(result_dict['print_outputs'])
 
         if result_dict['tests_passed'] == result_dict['tests_total']:

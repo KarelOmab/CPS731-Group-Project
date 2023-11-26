@@ -319,6 +319,7 @@
                       dataType: 'json', // expecting JSON response
                       success: function(data) {
                           displayResults(data);
+                          window.location.reload();
                       },
                       error: function(xhr) {
                           var data = xhr.responseJSON || JSON.parse(xhr.responseText);
