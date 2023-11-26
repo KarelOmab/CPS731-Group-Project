@@ -431,10 +431,11 @@ class App:
         #Get the challenge test cases
         testcases = SqlService.get_challenge_tests_by_id(challenge_id)
         comments = SqlService.get_challenge_comments_by_id(challenge_id)
-        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, 1)
+        account_id = session['user_id']
+        submission = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
 
         if challenge:
-            return render_template('challenge.html', challenge=challenge, testcases=testcases, comments = comments, submissions = submissions)
+            return render_template('challenge.html', challenge=challenge, testcases=testcases, comments = comments, submission = submission)
         else: 
             return abort(404)
 
