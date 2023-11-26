@@ -249,7 +249,7 @@
           <form action="{{ url_for('add_test_case', challenge_id=challenge.id) }}" method="post">
             <div class="form-row">
               <div class="form-group">
-                <label class = "stubLabel" for="stubName">{{ challenge.stub_name }}</label>
+                <label class = "stubLabel" for="stubName">{{challenge.stub_name}}</label>
               </div>
               <div class="col">
                 <input name = "inputParameters[]" type="text" class="form-control" id="inputParameters3" placeholder="input parameters" required>
@@ -275,8 +275,7 @@
             {% endif %}
                 <h4 class="mb-3">Your Solution</h4>
                 <div class="form-group">
-                    <textarea class="form-control" id="codeStub" name="stub-block" rows="5">{{ challenge.stub_block }}
-                    </textarea>
+                    <textarea class="form-control" id="codeStub" name="stub-block" rows="5">{{challenge.stub_block}}</textarea>
                 </div>
 
                 {% if session['privileged_mode'] %}
@@ -373,7 +372,7 @@
           <hr>
           {% if session['user_id'] and not session['privileged_mode'] %}
           <div id="submissions-section">
-            <h2>Submissions</h2>
+            <h2>Your Submissions</h2>
             {% if submission %}
                 <table class="table table-striped table-hover table-bordered">
                     <thead class="thead-dark">
