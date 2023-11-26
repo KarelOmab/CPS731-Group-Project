@@ -371,45 +371,31 @@
           {% endif %}
           <hr>
           {% if session['user_id'] and not session['privileged_mode'] %}
-          <div>
-            <h4 class="mb-3">Submissions</h4>
-            <li class="list-group-item">
-              {% if not submissions %}
-              <p>No submissions yet</p>
-              {% endif%}
-  
-              {% if submissions %}
-                {% for solution in submissions %}
-                <div class="container my-4">
-              
-                      <div class="card-header">
-                          <!-- Display username and the creation date of the comment -->
-                          <strong>{{ challenge.name }}</strong> submitted {{ solution.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
-                      </div>
-                      <div class="card-body">
-                          <!-- Display the title of the comment -->
-                          <h5 class="card-title"> Execution time: {{ solution.exec_time }} seconds</h5>
-                          <h5 class="card-title"> Executed characters: {{ solution.exec_chars }} characters</h5>
-                          <!-- Display the text of the comment -->
-                          <p class="card-text">{{ solution.exec_src }}</p>
-                      </div>
-                      <!-- To allow modertator to delete -->
-                      <div class="card-footer text-end">
-                          <!-- Delete button (you may want to include a confirmation before deletion) -->
-                          {% if session['privileged_mode'] %}
-                            <button class="btn btn-danger btn-sm" >Delete</button>
-                          {% endif %}
-                      </div>
-                  </div>
-    
-                
-              </div>
-              {% endfor %}
-            {% endif%}
-  
-            </li>
-  
-          </div>
+          <div id="submissions-section">
+            <h2>Submissions</h2>
+            {% if submission %}
+                <table border="1" style="border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th>Submitted At</th>
+                            <th>Execution Time</th>
+                            <th>Characters</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in submission %}
+                            <tr>
+                                <td>{{ submission.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>{{ '%.3f'|format(submission.exec_time) }}</td>
+                                <td>{{ submission.exec_chars }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No submissions yet.</p>
+            {% endif %}
+        </div>
           {% endif %}
          
           <div style = "padding: 1vw;">

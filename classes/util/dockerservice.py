@@ -138,6 +138,9 @@ print_outputs = []
                         result_dict['success'] = False
 
             result_dict['exec_time'] = time.time() - start_time
+
+
+
             container.stop()  # Stop the container
             container.remove()  # Remove the container
 
@@ -146,9 +149,10 @@ print_outputs = []
         thread.start()
         thread.join(timeout=challenge.time_allowed_sec)
         result_dict['exec_chars'] = len(user_code)
+        result_dict['success'] = result_dict['tests_total'] == result_dict['tests_passed']
 
-        if thread.is_alive():
+        if thread.is_alive() and result_dict['exec_time'] == 0.0:
             result_dict['timeout'] = True
-            result_dict['success'] = False
+            #result_dict['success'] = False
 
         return result_dict
