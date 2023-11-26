@@ -14,6 +14,26 @@
 
     <!-- This is just display symbols such as arrows -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+
+    <style>
+      .spinner {
+          display: inline-block;
+          width: 18px;
+          height: 18px;
+          vertical-align: text-bottom;
+          border: 2px solid currentColor;
+          border-right-color: transparent;
+          border-radius: 50%;
+          animation: spinner-border .75s linear infinite;
+      }
+
+      @keyframes spinner-border {
+          to { transform: rotate(360deg); }
+      }
+
+
+    </style>
+
     <script>
         //Function that handles editing the challenge difficulty      
         function editDifficultyLevel(challenge_id)
@@ -311,6 +331,10 @@
                   event.preventDefault(); // Prevent default form submission
 
                   var $form = $(this);
+                  var $submitButton = $form.find('button[type="submit"]');
+                  $submitButton.prop('disabled', true).html('<span class="spinner"></span> Loading...'); // Disable button and show spinner
+
+                  var $form = $(this);
                   $.ajax({
                       url: '/submission/{{ challenge.id }}', // URL for the POST request
                       method: 'POST',
@@ -323,9 +347,11 @@
                       error: function(xhr) {
                           var data = xhr.responseJSON || JSON.parse(xhr.responseText);
                           displayResults(data);
+                          $submitButton.prop('disabled', false).html('Submit Solution');
                       },
                       complete: function(xhr, textStatus) {
-                          console.log('Request completed with status:', textStatus);
+                        $submitButton.prop('disabled', false).html('Submit Solution');
+                        console.log('Request completed with status:', textStatus);
                       }
                   });
               });
