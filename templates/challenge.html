@@ -264,27 +264,113 @@
           </form>
           {% endif %}
 
-          <!-- Code Stub -->
-          <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}  {% if session['privileged_mode'] %}<a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h4>
-          <h4 class="mb-3">Code Stub</h4>
-          {% if session['privileged_mode'] %}
-            <form action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
-          {% else %}
-            <form action="" method="post">
-          {% endif %}
-              
-              <div class="form-group">
-                  <textarea class="form-control" id="codeStub" name="stub-block" rows="5"> {{ challenge.stub_block }}
-                  </textarea>
-              </div>
-              {% if session['privileged_mode'] %}
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
-              {% else %}
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Solution</button>
-              {% endif %}
-          </form>
+          {% if session['user_id'] %}
+          
+            {% if session['privileged_mode'] %}
+              <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}  <a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a></h4>
+              <h4 class="mb-3">Code Stub</h4>
+              <form action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
+            {% else %}
+              <form id="submissionForm">
+            {% endif %}
+                <h4 class="mb-3">Your Solution</h4>
+                <div class="form-group">
+                    <textarea class="form-control" id="codeStub" name="stub-block" rows="5">{{ challenge.stub_block }}
+                    </textarea>
+                </div>
 
-          {% if not session['privileged_mode'] %}
+                {% if session['privileged_mode'] %}
+                  <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
+                {% else %}
+                  <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Solution</button>
+                {% endif %}
+            </form>
+            <div id="challenge-outputs">
+              <div id="result" style="display:none;">
+                  <h2>Results:</h2>
+                  <div id="responseMessage"></div>
+              </div>
+              
+              <div id="print" style="display:none;">
+                  <h2>Printout:</h2>
+                  <div id="printout"></div>
+              </div>
+              
+              <div id="time" style="display:none;">
+                  <h2>Time:</h2>
+                  <div id="executionTime"></div>
+              </div>
+              
+              <div id="chars" style="display:none;">
+                  <h2>Characters:</h2>
+                  <div id="executionChars"></div>
+              </div>
+          </div>
+            <script>
+              $(document).ready(function() {
+              $('#submissionForm').on('submit', function(event) {
+                  event.preventDefault(); // Prevent default form submission
+
+                  var $form = $(this);
+                  $.ajax({
+                      url: '/submission/{{ challenge.id }}', // URL for the POST request
+                      method: 'POST',
+                      data: $form.serialize(),
+                      dataType: 'json', // expecting JSON response
+                      success: function(data) {
+                          displayResults(data);
+                      },
+                      error: function(xhr) {
+                          var data = xhr.responseJSON || JSON.parse(xhr.responseText);
+                          displayResults(data);
+                      },
+                      complete: function(xhr, textStatus) {
+                          console.log('Request completed with status:', textStatus);
+                      }
+                  });
+              });
+
+              function displayResults(data) {
+                  //if(data.flash) { // Check if the flash message is present
+                  //   alert(data.flash.message); // Display an alert instead of placing in div
+                  //}
+
+                  if(data.message) {
+                      $('#responseMessage').text(data.message);
+                      $('#result').show();
+                  } else if (data.flash.message) {
+                      $('#responseMessage').text(data.flash.message);
+                      $('#result').show();
+                  }
+
+                  if(data.exec_time) {
+                      $('#executionTime').text(data.exec_time);
+                      $('#time').show();
+                  } else {
+                      $('#time').hide();
+                  }
+
+                  if(data.exec_chars) {
+                      $('#executionChars').text(data.exec_chars);
+                      $('#chars').show();
+                  } else {
+                      $('#chars').hide();
+                  }
+
+                  // Check the length of data.printout
+                  if (data.printout && data.printout.length > 0) {
+                      $('#printout').html(data.printout.replace(/\n/g, '<br>'));
+                      $('#print').show();  //ensure visibility
+                  } else {
+                      $('#print').hide();  //hide if no content
+                  }
+              }
+          });
+
+          </script>
+          {% endif %}
+          <hr>
+          {% if session['user_id'] and not session['privileged_mode'] %}
           <div>
             <h4 class="mb-3">Submissions</h4>
             <li class="list-group-item">

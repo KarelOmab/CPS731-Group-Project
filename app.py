@@ -4,6 +4,7 @@ from flask import request, redirect, url_for
 from dotenv import load_dotenv
 from classes.util.sqlservice import SqlService
 from classes.util.cryptoservice import CryptoService
+from classes.util.dockerservice import DockerService
 
 class App:
     def __init__(self):
@@ -330,7 +331,79 @@ class App:
             A JSON response containing the result of the submission attempt, along with appropriate HTTP status
             codes. This response includes success messages, execution details, and error messages as applicable.
         """
-        pass
+        if request.method != 'POST':
+            abort(404)
+
+        user_code = request.form.get('stub-block')
+
+        # Retrieve challenge and test data from database
+        challenge = SqlService.get_challenge_by_id(challenge_id)
+        tests = SqlService.get_challenge_tests_by_id(challenge_id)
+
+        if not challenge:
+            abort(404)  # Challenge not found
+
+        if not tests:
+            return jsonify(
+                message="System error: Test Cases Not Implemented. Please come back later!",
+                flash={"message": "Test cases are not implemented yet.", "category": "error"}
+            ), 501
+
+        stub_valid_result, msg = DockerService.validate_user_method(user_code, challenge.stub_name)
+        if not stub_valid_result:
+            return jsonify(
+                message=stub_valid_result,
+                flash={"message": msg, "category": "error"}
+            ), 400
+
+        result_dict = DockerService.execute_code(challenge, tests, user_code)
+        print("result_dict", result_dict)
+        output_str = "\n".join(result_dict['print_outputs'])
+
+        if result_dict['tests_passed'] == result_dict['tests_total']:
+            try:
+                result = SqlService.insert_challenge_submission(challenge_id, session['user_id'], result_dict['exec_time'], result_dict['exec_chars'], user_code)
+
+                if result:
+                    return jsonify(
+                        message="Correct! Your function returned the expected results for all test cases.",
+                        flash={"message": "Submission added successfully!", "category": "success"},
+                        printout=output_str,
+                        exec_time=result_dict['exec_time'],
+                        exec_chars=result_dict['exec_chars']
+                    ), 200
+                else:
+                    return jsonify(
+                        message="Failed to add your submission.",
+                        printout=output_str,
+                        flash={"message": "Failed to add submission.", "category": "error"}
+                    ), 400
+            except Exception as e:
+                return jsonify(
+                    message=str(e),
+                    printout=output_str,
+                    flash={"message": f"An unexpected error occurred: {e}", "category": "error"}
+                ), 500
+        else:
+            # Handling for different types of errors
+            if result_dict['error']:
+                return jsonify(
+                    message=result_dict['error'],
+                    printout=output_str,
+                    flash={"message": result_dict['error'], "category": "error"}
+                ), 400
+            elif result_dict['timeout']:
+                return jsonify(
+                    message="Timeout Occurred!",
+                    printout=output_str,
+                    flash={"message": "A timeout occurred during the execution of your submission.", "category": "warning"}
+                ), 408
+            elif result_dict['exception']:
+                return jsonify(
+                    message=result_dict['exception'],
+                    printout=output_str,
+                    flash={"message": result_dict['exception'], "category": "error"}
+                ), 500
 
     def generic_challenge(self, challenge_id):
         """
