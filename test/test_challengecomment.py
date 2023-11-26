@@ -56,6 +56,3 @@ class TestChallengeComment(unittest.TestCase):
         # Test the username getter and setter
         self.comment.username = "new_user"
         self.assertEqual(self.comment.username, "new_user")
-
-if __name__ == '__main__':
-    unittest.main()

@@ -50,6 +50,3 @@ class TestChallengeSubmission(unittest.TestCase):
         # Test the exec_src getter and setter
         self.submission.exec_src = "def foo(x, y): pass"
         self.assertEqual(self.submission.exec_src, "def foo(x, y): pass")
-
-if __name__ == '__main__':
-    unittest.main()

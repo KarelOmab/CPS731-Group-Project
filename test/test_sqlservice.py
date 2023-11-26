@@ -1,850 +1,658 @@
 import unittest
+from unittest.mock import patch, MagicMock
 from classes.util.sqlservice import SqlService
+from unittest.mock import patch
+from classes.account.user import User
+from classes.account.moderator import Moderator
+from classes.challenge.challenge import Challenge
+from classes.challenge.challengetest import ChallengeTest
+from classes.challenge.challengecomment import ChallengeComment
+from classes.challenge.challengesubmission import ChallengeSubmission
+from datetime import datetime
+import mysql.connector
+
+
+# The purpose of these mock tests is to do line coverage
+# These testers simply test line execution
+# We have a separate integration test file for actual (real data) pushing/pulling
 
 class TestSqlService(unittest.TestCase):
-    
-    def test_insert_account_success(self):
-        # Define test data
-        usergroup = 3
-        username = "testuser" + "ae5deb822e0d71992900471a7199d0d95b8e7c9d05c40a8245a281fd2c1d6684"  #hash to guarantee uniqueness
-        password = "testpassword123"
-        email = "testuser@example.com"
+
+    @patch('mysql.connector.connect')
+    def test_create_connection(self, mock_connect):
+        SqlService.create_connection()
+        mock_connect.assert_called_with(host=SqlService.HOST, user=SqlService.USER, password=SqlService.PASSWORD, database=SqlService.DATABASE)
+
+    @patch('mysql.connector.connect')
+    def test_execute_query(self, mock_connect):
+        mock_connection = mock_connect.return_value
+        mock_cursor = mock_connection.cursor.return_value
+        mock_cursor.fetchall.return_value = [{'id': 1, 'name': 'Foo'}]
+
+        result = SqlService.execute_query("SELECT * FROM challenges")
+
+        self.assertEqual(result, [{'id': 1, 'name': 'Foo'}])
+        mock_cursor.execute.assert_called_once_with("SELECT * FROM challenges", None)
+        mock_cursor.close.assert_called()
+        mock_connection.close.assert_called()
+
+    @patch('classes.util.sqlservice.SqlService.create_connection')
+    def test_execute_query_exception(self, mock_create_connection):
+        # Setup a mock connection and cursor
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_create_connection.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+
+        # Simulate an exception when cursor.execute is called
+        mock_cursor.execute.side_effect = mysql.connector.Error("Test error")
+
+        # Call the execute_query method
+        result = SqlService.execute_query("SELECT * FROM challenges")
+
+        # Assert that the result is None due to the exception
+        self.assertIsNone(result)
+
+        # Assert that the exception handling code was executed
+        mock_cursor.execute.assert_called_once_with("SELECT * FROM challenges", None)
+        mock_cursor.close.assert_called()
+        mock_connection.close.assert_called()
+
+    @patch('mysql.connector.connect')
+    def test_execute_query_and_get_last_id(self, mock_connect):
+        mock_connection = mock_connect.return_value
+        mock_cursor = mock_connection.cursor.return_value
+        mock_cursor.lastrowid = 1
+
+        result = SqlService.execute_query_and_get_last_id("INSERT INTO usergroup (type) VALUES (%s)", ("guest",))
+
+        self.assertEqual(result, 1)
+        mock_cursor.execute.assert_called_once_with("INSERT INTO usergroup (type) VALUES (%s)", ("guest",))
+        mock_cursor.close.assert_called()
+        mock_connection.close.assert_called()
+
+    @patch('classes.util.sqlservice.SqlService.create_connection')
+    def test_execute_query_and_get_last_id_exception(self, mock_create_connection):
+        # Setup a mock connection and cursor
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_create_connection.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+
+        # Simulate an exception when cursor.execute is called
+        mock_cursor.execute.side_effect = mysql.connector.Error("Test error")
+
+        # Call the execute_query_and_get_last_id method
+        result = SqlService.execute_query_and_get_last_id("INSERT INTO usergroup (type) VALUES (%s)", ("guest",))
+
+        # Assert that the result is None due to the exception
+        self.assertIsNone(result)
+
+        # Assert that the exception handling code was executed
+        mock_cursor.execute.assert_called_once_with("INSERT INTO usergroup (type) VALUES (%s)", ("guest",))
+        mock_connection.rollback.assert_called()
+        mock_cursor.close.assert_called()
+        mock_connection.close.assert_called()
+
+    @patch('mysql.connector.connect')
+    def test_call_stored_procedure(self, mock_connect):
+        mock_connection = mock_connect.return_value
+        mock_cursor = mock_connection.cursor.return_value
+        mock_result = MagicMock()
+        mock_result.fetchall.return_value = [{'id': 1, 'name': 'Foo'}]
+        mock_cursor.stored_results.return_value = [mock_result]
+
+        result = SqlService.call_stored_procedure("GetChallengeById", params=(1,))
+
+        self.assertEqual(result, [{'id': 1, 'name': 'Foo'}])
+        mock_cursor.callproc.assert_called_once_with("GetChallengeById", (1,))
+        mock_cursor.close.assert_called()
+        mock_connection.close.assert_called()
+
+    @patch('classes.util.sqlservice.SqlService.create_connection')
+    def test_call_stored_procedure_fetchone(self, mock_create_connection):
+        # Setup mock connection, cursor, and stored result
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_stored_result = MagicMock()
+        mock_stored_result.fetchone.return_value = {'id': 1, 'name': 'Foo'}
+        mock_cursor.stored_results.return_value = [mock_stored_result]
+        mock_create_connection.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
 
         # Call the method
-        result = SqlService.insert_account(usergroup, username, password, email)[0]['message']
+        result = SqlService.call_stored_procedure("GetChallengeById", params=(1,), fetchone=True)
 
-        # Assert that the result is as expected
-        self.assertEqual(result, "Success")
+        # Assertions
+        self.assertEqual(result, {'id': 1, 'name': 'Foo'})
+        mock_cursor.callproc.assert_called_with("GetChallengeById", (1,))
+        mock_cursor.close.assert_called()
+        mock_connection.close.assert_called()
 
-        # Note receiving the message "Success" implies that the record was inserted
-        # Additional cleanup code to remove the inserted data from the database
-        SqlService.purge_account_by_username(username)  # purge this record
+    @patch('classes.util.sqlservice.SqlService.create_connection')
+    def test_call_stored_procedure_exception(self, mock_create_connection):
+        # Setup mock connection and cursor
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_create_connection.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
 
-    def test_insert_account_fail_username_in_use(self):
-            # Define test data
-            usergroup = 2
-            username = "karel"  #hash to guarantee uniqueness
-            password = "testpassword123"
-            email = "testuser@example.com"
-
-            # Call the method
-            result = SqlService.insert_account(usergroup, username, password, email)[0]['message']
-
-            # Assert that the result is as expected
-            self.assertEqual(result, "Username in use")
-
-    def test_insert_account_fail_email_in_use(self):
-            # Define test data
-            usergroup = 2
-            username = "karel112"  #hash to guarantee uniqueness
-            password = "testpassword123"
-            email = "karel@email.com"
-
-            # Call the method
-            result = SqlService.insert_account(usergroup, username, password, email)[0]['message']
-
-            # Assert that the result is as expected
-            self.assertEqual(result, "Email in use")
-
-    def test_insert_challenge_success(self):
-        # Define test data
-        account_id = 1 # karel
-        name = "Test Challenge" + "bd720e3aa2e89aff04e387d1baf40751c942fb5b290e08324a71dee07756dfb8"    #hash to guarantee uniqueness
-        difficulty = "Easy"
-        description = "This is a test challenge description."
-        stub_name = "def foo(x)"
-        stub_block = "# TODO"
-        time_allowed_sec = 5.0
+        # Simulate an exception when cursor.callproc is called
+        mock_cursor.callproc.side_effect = mysql.connector.Error("Test error")
 
         # Call the method
-        challenge_id = SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)[0]['LAST_INSERT_ID()']
+        result = SqlService.call_stored_procedure("GetChallengeById", params=(1,))
 
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNotNone(challenge_id)
+        # Assertions
+        self.assertIsNone(result)
+        mock_cursor.callproc.assert_called_with("GetChallengeById", (1,))
+        mock_connection.rollback.assert_called()
+        mock_cursor.close.assert_called()
+        mock_connection.close.assert_called()
+
+    @patch('classes.util.sqlservice.SqlService.create_connection')
+    def test_call_stored_procedure_update_or_delete(self, mock_create_connection):
+        # Setup a mock connection and cursor
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_create_connection.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+
+        # Call the method with update=True
+        result_update = SqlService.call_stored_procedure("UpdateChallengeNameById", params=(1, "Bar"), update=True)
+
+        # Assertions for update
+        self.assertTrue(result_update)
+        mock_cursor.callproc.assert_called_with("UpdateChallengeNameById", (1, "Bar"))
+
+        # Resetting mock for the next call
+        mock_cursor.reset_mock()
+
+        # Call the method with delete=True
+        result_delete = SqlService.call_stored_procedure("DeleteChallengeById", params=(1,), delete=True)
+
+        # Assertions for delete
+        self.assertTrue(result_delete)
+        mock_cursor.callproc.assert_called_with("DeleteChallengeById", (1, ))
+
+        # Verify cursor and connection are closed
+        self.assertEqual(mock_cursor.close.call_count, 1)
+        self.assertEqual(mock_connection.close.call_count, 2)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_insert_account(self, mock_call_proc):
+        usergroup, username, password, email = 'user', 'testuser', 'password', 'test@example.com'
+        SqlService.insert_account(usergroup, username, password, email)
+        mock_call_proc.assert_called_with("InsertAccount", params=(usergroup, username, password, email))
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_insert_challenge(self, mock_call_proc):
+        account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec = 1, 'Foo', 'Easy', 'Description', 'foo', '# TODO', 10
+        SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
+        mock_call_proc.assert_called_with("InsertChallenge", params=(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec))
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_insert_challenge_test(self, mock_call_proc):
+        challenge_id, input_data, output_data = 1, 'input', 'output'
+        SqlService.insert_challenge_test(challenge_id, input_data, output_data)
+        mock_call_proc.assert_called_with("InsertChallengeTest", params=(challenge_id, input_data, output_data))
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_insert_challenge_comment(self, mock_call_proc):
+        account_id, challenge_id, title, text = 1, 2, 'Comment Title', 'Comment Text'
         
-        # Optionally: Verify the inserted data in the database
-        challenge = SqlService.get_challenge_by_id(challenge_id)
-        SqlService.purge_challenge_by_id(challenge_id)  # purge this record
-        self.assertEqual(challenge.name, name)
-        self.assertEqual(challenge.difficulty, difficulty)
-        self.assertEqual(challenge.description, description)
-        self.assertEqual(challenge.stub_name, stub_name)
-        self.assertEqual(challenge.stub_block, stub_block)
-        self.assertEqual(challenge.time_allowed_sec, time_allowed_sec)
+        # Set up a mock return value for call_stored_procedure
+        mock_call_proc.return_value = 123  # Example comment ID
 
-        
+        result = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
 
-    def test_insert_challenge_fail_missing_account_id(self):
-        # Define test data
-        account_id = None # karel
-        name = None
-        difficulty = "Easy"
-        description = "This is a test challenge description."
-        stub_name = "def foo(x)"
-        stub_block = "# TODO"
-        time_allowed_sec = 5.0
+        # Verify that call_stored_procedure was called correctly
+        mock_call_proc.assert_called_with("InsertChallengeComment", params=(account_id, challenge_id, title, text))
 
-        # Call the method
-        challenge_id = SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
+        # Verify that the result matches the expected return value
+        self.assertEqual(result, 123)
 
-        # Assert that None was returned (indicating failed insertion)
-        self.assertIsNone(challenge_id)
 
-    def test_insert_challenge_fail_missing_name(self):
-        # Define test data
-        account_id = 1 # karel
-        name = None
-        difficulty = "Easy"
-        description = "This is a test challenge description."
-        stub_name = "def foo(x)"
-        stub_block = "# TODO"
-        time_allowed_sec = 5.0
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_insert_challenge_submission(self, mock_call_proc):
+        challenge_id, account_id, exec_time, exec_chars, exec_src = 1, 1, 5.0, 100, 'source code'
+        SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
+        mock_call_proc.assert_called_with("InsertChallengeSubmission", params=(challenge_id, account_id, exec_time, exec_chars, exec_src))
 
-        # Call the method
-        challenge_id = SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
+    def test_raw_account_to_account(self):
+        raw_account = {
+            'id': 1,
+            'created_at': datetime.now(),
+            'usergroup_id': 2,
+            'username': 'moduser',
+            'email': 'mod@example.com'
+        }
+        account = SqlService.raw_account_to_account(raw_account)
+        self.assertIsInstance(account, Moderator)
+        self.assertEqual(account.username, 'moduser')
 
-        # Assert that None was returned (indicating failed insertion)
-        self.assertIsNone(challenge_id)
+        raw_account['usergroup_id'] = 3  # 3 represents User
+        account = SqlService.raw_account_to_account(raw_account)
+        self.assertIsInstance(account, User)
+        self.assertEqual(account.username, 'moduser')
 
-    def test_insert_challenge_fail_missing_difficulty(self):
-        # Define test data
-        account_id = 1 # karel
-        name = "Test Challenge" + "bd720e3aa2e89aff04e387d1baf40751c942fb5b290e08324a71dee07756dfb8"    #hash to guarantee uniqueness
-        difficulty = None
-        description = "This is a test challenge description."
-        stub_name = "def foo(x)"
-        stub_block = "# TODO"
-        time_allowed_sec = 5.0
+        self.assertIsNone(SqlService.raw_account_to_account(None))
 
-        # Call the method
-        challenge_id = SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
+    def test_raw_account_to_account_none(self):
+        # Test with raw_account as None
+        result_none = SqlService.raw_account_to_account(None)
+        self.assertIsNone(result_none)
 
-        # Assert that None was returned (indicating failed insertion)
-        self.assertIsNone(challenge_id)
+        # Test with unrecognized usergroup_id
+        raw_account_unrecognized = {
+            'id': 123,
+            'created_at': '2021-01-01T00:00:00Z',
+            'usergroup_id': 999,  # Unrecognized usergroup_id
+            'username': 'unknownUser',
+            'email': 'unknown@example.com'
+        }
+        result_unrecognized = SqlService.raw_account_to_account(raw_account_unrecognized)
+        self.assertIsNone(result_unrecognized)
 
-    def test_insert_challenge_fail_invalid_difficulty(self):
-        # Define test data
-        account_id = 1 # karel
-        name = "Test Challenge" + "bd720e3aa2e89aff04e387d1baf40751c942fb5b290e08324a71dee07756dfb8"    #hash to guarantee uniqueness
-        difficulty = "foobar"
-        description = "This is a test challenge description."
-        stub_name = "def foo(x)"
-        stub_block = "# TODO"
-        time_allowed_sec = 5.0
+    def test_raw_challenge_to_challenge(self):
+        raw_challenge = {
+            'id': 1,
+            'created_at': datetime.now(),
+            'account_id': 1,
+            'is_deleted': False,
+            'name': 'Foo',
+            'difficulty': 'Easy',
+            'description': 'Description',
+            'stub_name': 'foo',
+            'stub_block': '# TODO',
+            'time_allowed_sec': 30
+        }
+        challenge = SqlService.raw_challenge_to_challenge(raw_challenge)
+        self.assertIsInstance(challenge, Challenge)
+        self.assertEqual(challenge.name, 'Foo')
+        self.assertIsNone(SqlService.raw_challenge_to_challenge(None))
 
-        # Call the method
-        challenge_id = SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
+    def test_raw_test_to_test(self):
+        raw_test = {
+            'id': 1,
+            'challenge_id': 1,
+            'is_deleted': False,
+            'input': 'input data',
+            'output': 'output data'
+        }
+        test = SqlService.raw_test_to_test(raw_test)
+        self.assertIsInstance(test, ChallengeTest)
+        self.assertEqual(test.test_input, 'input data')
 
-        # Assert that None was returned (indicating failed insertion)
-        self.assertIsNone(challenge_id)
+    def test_raw_comment_to_comment(self):
+        raw_comment = {
+            'id': 1,
+            'created_at': datetime.now(),
+            'account_id': 1,
+            'is_deleted': False,
+            'challenge_id': 1,
+            'title': 'Title',
+            'text': 'Text',
+            'username': 'user'
+        }
+        comment = SqlService.raw_comment_to_comment(raw_comment)
+        self.assertIsInstance(comment, ChallengeComment)
+        self.assertEqual(comment.title, 'Title')
 
-    def test_insert_challenge_fail_missing_description(self):
-        # Define test data
-        account_id = 1 # karel
-        name = "Test Challenge" + "bd720e3aa2e89aff04e387d1baf40751c942fb5b290e08324a71dee07756dfb8"    #hash to guarantee uniqueness
-        difficulty = "foobar"
-        description = None
-        stub_name = "def foo(x)"
-        stub_block = "# TODO"
-        time_allowed_sec = 5.0
+    def test_raw_submission_to_submission(self):
+        raw_submission = {
+            'id': 1,
+            'created_at': datetime.now(),
+            'challenge_id': 1,
+            'account_id': 1,
+            'exec_time': 5.0,
+            'exec_chars': 100,
+            'exec_src': 'source code'
+        }
+        submission = SqlService.raw_submission_to_submission(raw_submission)
+        self.assertIsInstance(submission, ChallengeSubmission)
+        self.assertEqual(submission.exec_time, 5.0)
 
-        # Call the method
-        challenge_id = SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_account_to_account')
+    def test_get_account_by_username_password(self, mock_transform, mock_call_proc):
+        username, password = 'testuser', 'password'
+        SqlService.get_account_by_username_password(username, password)
+        mock_call_proc.assert_called_with("GetAccountByUsernameAndPassword", params=(username, password), fetchone=True)
+        mock_transform.assert_called()
 
-        # Assert that None was returned (indicating failed insertion)
-        self.assertIsNone(challenge_id)
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_challenge_to_challenge')
+    def test_get_all_challenges(self, mock_transform, mock_call_proc):
+        # Mock return value for call_stored_procedure
+        mock_call_proc.return_value = [
+            {'id': 1, 'name': 'Challenge 1'}, 
+            {'id': 2, 'name': 'Challenge 2'}
+        ]
 
-    def test_insert_challenge_fail_missing_stub_name(self):
-        # Define test data
-        account_id = 1 # karel
-        name = "Test Challenge" + "bd720e3aa2e89aff04e387d1baf40751c942fb5b290e08324a71dee07756dfb8"    #hash to guarantee uniqueness
-        difficulty = "foobar"
-        description = "This is a test challenge description."
-        stub_name = None
-        stub_block = "# TODO"
-        time_allowed_sec = 5.0
+        SqlService.get_all_challenges()
 
-        # Call the method
-        challenge_id = SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
+        # Verify that call_stored_procedure was called correctly
+        mock_call_proc.assert_called_with("GetAllChallenges")
 
-        # Assert that None was returned (indicating failed insertion)
-        self.assertIsNone(challenge_id)
+        # Verify that raw_challenge_to_challenge was called for each raw challenge
+        self.assertEqual(mock_transform.call_count, 2)
 
-    def test_insert_challenge_fail_missing_stub_block(self):
-        # Define test data
-        account_id = 1 # karel
-        name = "Test Challenge" + "bd720e3aa2e89aff04e387d1baf40751c942fb5b290e08324a71dee07756dfb8"    #hash to guarantee uniqueness
-        difficulty = "foobar"
-        description = "This is a test challenge description."
-        stub_name = "def foo(x)"
-        stub_block = None
-        time_allowed_sec = 5.0
-
-        # Call the method
-        challenge_id = SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
-
-        # Assert that None was returned (indicating failed insertion)
-        self.assertIsNone(challenge_id)
-
-    def test_insert_challenge_fail_missing_time_allowed_sec(self):
-        # Define test data
-        account_id = 1 # karel
-        name = "Test Challenge" + "bd720e3aa2e89aff04e387d1baf40751c942fb5b290e08324a71dee07756dfb8"    #hash to guarantee uniqueness
-        difficulty = "foobar"
-        description = "This is a test challenge description."
-        stub_name = "def foo(x)"
-        stub_block = "# TODO"
-        time_allowed_sec = None
-
-        # Call the method
-        challenge_id = SqlService.insert_challenge(account_id, name, difficulty, description, stub_name, stub_block, time_allowed_sec)
-
-        # Assert that None was returned (indicating failed insertion)
-        self.assertIsNone(challenge_id)
-
-    def test_insert_challenge_test_success(self):
-        # Define test data
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_challenge_to_challenge')
+    def test_get_challenge_by_id(self, mock_transform, mock_call_proc):
         challenge_id = 1
-        input_data = "9, 10"
-        output_data = "19"
+        SqlService.get_challenge_by_id(challenge_id)
+        mock_call_proc.assert_called_with("GetChallengeById", params=(challenge_id, ), fetchone=True)
+        mock_transform.assert_called()
 
-        # Call the method
-        challenge_test_id = SqlService.insert_challenge_test(challenge_id, input_data, output_data)[0]['LAST_INSERT_ID()']
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_test_to_test')
+    def test_get_challenge_test_by_id(self, mock_transform, mock_call_proc):
+        challenge_test_id = 1
+        SqlService.get_challenge_test_by_id(challenge_test_id)
+        mock_call_proc.assert_called_with("GetChallengeTestById", params=(challenge_test_id, ), fetchone=True)
+        mock_transform.assert_called()
 
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNotNone(challenge_test_id)
-
-        # Optionally: Verify the inserted data in the database
-        challenge_test = SqlService.get_challenge_test_by_id(challenge_test_id)
-        SqlService.purge_challenge_test_by_id(challenge_test_id)  # purge this record
-        self.assertEqual(challenge_test.test_input, input_data)
-        self.assertEqual(challenge_test.test_output, output_data)
-
-    def test_insert_challenge_test_fail_missing_input(self):
-        # Define test data
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_test_to_test')
+    def test_get_challenge_tests_by_id(self, mock_transform, mock_call_proc):
+        # Mock return value for call_stored_procedure
         challenge_id = 1
-        input_data = None
-        output_data = "19"
+        mock_call_proc.return_value = [
+            {'id': 1, 'input': 'test input 1', 'output': 'test output 1'}, 
+            {'id': 2, 'input': 'test input 2', 'output': 'test output 2'}
+        ]
 
-        # Call the method
-        challenge_test_id = SqlService.insert_challenge_test(challenge_id, input_data, output_data)
+        SqlService.get_challenge_tests_by_id(challenge_id)
 
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(challenge_test_id)
+        # Verify that call_stored_procedure was called correctly
+        mock_call_proc.assert_called_with("GetChallengeTestsById", params=(challenge_id,))
 
-    def test_insert_challenge_test_fail_missing_output(self):
-        # Define test data
-        challenge_id = 1
-        input_data = "9, 10"
-        output_data = None
+        # Verify that raw_test_to_test was called for each raw test
+        self.assertEqual(mock_transform.call_count, 2)
 
-        # Call the method
-        challenge_test_id = SqlService.insert_challenge_test(challenge_id, input_data, output_data)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(challenge_test_id)
-
-    
-    def test_insert_challenge_comment_success(self):
-        # Define test data
-        account_id = 1
-        challenge_id = 1
-        title = "Test Comment Title"
-        text = "This is a test comment."
-
-        # Call the method
-        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)[0]['LAST_INSERT_ID()']
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNotNone(comment_id)
-
-        # Optionally: Verify the inserted data in the database
-        challenge_comment = SqlService.get_challenge_comment_by_id(comment_id)
-        SqlService.purge_challenge_comment_by_id(comment_id)  # purge this record
-        self.assertEqual(challenge_comment.title, title)
-        self.assertEqual(challenge_comment.text, text)
-
-    def test_insert_challenge_comment_fail_missing_account_id(self):
-        # Define test data
-        account_id = None
-        challenge_id = 1
-        title = "Test Comment Title"
-        text = "This is a test comment."
-
-        # Call the method
-        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(comment_id)
-
-    def test_insert_challenge_comment_fail_missing_challenge_id(self):
-        # Define test data
-        account_id = 1
-        challenge_id = None
-        title = "Test Comment Title"
-        text = "This is a test comment."
-
-        # Call the method
-        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(comment_id)
-
-    def test_insert_challenge_comment_fail_missing_title(self):
-        # Define test data
-        account_id = 1
-        challenge_id = 1
-        title = None
-        text = "This is a test comment."
-
-        # Call the method
-        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(comment_id)
-
-    def test_insert_challenge_comment_fail_missing_text(self):
-        # Define test data
-        account_id = 1
-        challenge_id = 1
-        title = "Test Comment Title"
-        text = None
-
-        # Call the method
-        comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(comment_id)
-
-    def test_insert_challenge_submission_success(self):
-        # Define test data
-        challenge_id = 1
-        account_id = 1
-        exec_time = 1.23  # Execution time
-        exec_chars = 100  # Number of characters
-        exec_src = "return a+b"  # Example source code
-
-        # Call the method
-        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)[0]['LAST_INSERT_ID()']
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNotNone(submission_id)
-
-        # Optionally: Verify the inserted data in the database
-        challenge_submission = SqlService.get_challenge_submission_by_id(submission_id)
-        SqlService.purge_challenge_submission_by_id(submission_id)  # purge this record
-        self.assertEqual(challenge_submission.challenge_id, challenge_id)
-        self.assertEqual(challenge_submission.account_id, account_id)
-        self.assertEqual(challenge_submission.exec_time, exec_time)
-        self.assertEqual(challenge_submission.exec_chars, exec_chars)
-        self.assertEqual(challenge_submission.exec_src, exec_src)
-
-    def test_insert_challenge_submission_fail_missing_challenge_id(self):
-        # Define test data
-        challenge_id = None
-        account_id = 1
-        exec_time = 1.23  # Execution time
-        exec_chars = 100  # Number of characters
-        exec_src = "return a+b"  # Example source code
-
-        # Call the method
-        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(submission_id)
-
-    def test_insert_challenge_submission_fail_missing_account_id(self):
-        # Define test data
-        challenge_id = 1
-        account_id = None
-        exec_time = 1.23  # Execution time
-        exec_chars = 100  # Number of characters
-        exec_src = "return a+b"  # Example source code
-
-        # Call the method
-        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(submission_id)
-
-    def test_insert_challenge_submission_fail_missing_exec_time(self):
-        # Define test data
-        challenge_id = 1
-        account_id = 1
-        exec_time = None
-        exec_chars = 100  # Number of characters
-        exec_src = "return a+b"  # Example source code
-
-        # Call the method
-        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(submission_id)
-
-    def test_insert_challenge_submission_fail_missing_chars(self):
-        # Define test data
-        challenge_id = 1
-        account_id = 1
-        exec_time = 1.23  # Execution time
-        exec_chars = None
-        exec_src = "return a+b"  # Example source code
-
-        # Call the method
-        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(submission_id)
-
-    def test_insert_challenge_submission_fail_missing_src(self):
-        # Define test data
-        challenge_id = 1
-        account_id = 1
-        exec_time = 1.23  # Execution time
-        exec_chars = 100  # Number of characters
-        exec_src = None
-
-        # Call the method
-        submission_id = SqlService.insert_challenge_submission(challenge_id, account_id, exec_time, exec_chars, exec_src)
-
-        # Assert that an ID was returned (indicating successful insertion)
-        self.assertIsNone(submission_id)
-
-    def test_get_account_by_username_password_success(self):
-        # Define test data
-        username = "test"  
-        password = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"  
-
-        # Call the method
-        account = SqlService.get_account_by_username_password(username, password)
-
-        # Assert that the account is retrieved correctly
-        self.assertIsNotNone(account)
-        self.assertEqual(account.username, username)
-
-    def test_get_account_by_username_password_fail_missing_username(self):
-        # Define test data
-        username = None 
-        password = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"  
-
-        # Call the method
-        account = SqlService.get_account_by_username_password(username, password)
-
-        # Assert that the account is retrieved correctly
-        self.assertIsNone(account)
-
-    def test_get_account_by_username_password_fail_missing_password(self):
-        # Define test data
-        username = "test" 
-        password = None
-
-        # Call the method
-        account = SqlService.get_account_by_username_password(username, password)
-
-        # Assert that the account is retrieved correctly
-        self.assertIsNone(account)
-
-    def test_get_all_challenges_success(self):
-        # Call the method
-        challenges = SqlService.get_all_challenges()
-
-        # Assert that a list is returned
-        self.assertIsInstance(challenges, list)
-
-    def test_get_challenge_by_id_success(self):
-        # Define test data
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_get_challenge_tests_by_id_none(self, mock_call_proc):
+        # Challenge ID to test
         challenge_id = 1
 
-        # Call the method
-        challenge = SqlService.get_challenge_by_id(challenge_id)
-
-        # Assert that a challenge object is returned
-        self.assertIsNotNone(challenge)
-        self.assertEqual(challenge.id, challenge_id)
-
-    def test_get_challenge_by_id_fail_missing_challenge_id(self):
-        # Define test data
-        challenge_id = None
+        # Mock call_stored_procedure to return None or an empty list
+        mock_call_proc.return_value = None
 
         # Call the method
-        challenge = SqlService.get_challenge_by_id(challenge_id)
+        result = SqlService.get_challenge_tests_by_id(challenge_id)
 
-        # Assert that a challenge object is returned
-        self.assertIsNone(challenge)
+        # Assertions
+        self.assertIsNone(result)
+        mock_call_proc.assert_called_with("GetChallengeTestsById", params=(challenge_id, ))
 
-    def test_get_challenge_tests_by_id_success(self):
-        # Define test data
+        # Reset and test with an empty list
+        mock_call_proc.reset_mock()
+        mock_call_proc.return_value = []
+
+        # Call the method again
+        result = SqlService.get_challenge_tests_by_id(challenge_id)
+
+        # Assertions
+        self.assertIsNone(result)
+        mock_call_proc.assert_called_with("GetChallengeTestsById", params=(challenge_id, ))
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_test_to_test')
+    def test_get_challenge_tests_by_id_and_limit(self, mock_transform, mock_call_proc):
+        # Set challenge ID and expected limit
         challenge_id = 1
+        expected_limit = 5
 
-        # Call the method
-        tests = SqlService.get_challenge_tests_by_id(challenge_id)
+        # Mock return value for call_stored_procedure
+        mock_call_proc.return_value = [
+            {'id': 1, 'input': 'test input 1', 'output': 'test output 1'},
+            {'id': 2, 'input': 'test input 2', 'output': 'test output 2'}
+        ]
 
-        # Assert that a list of tests is returned
-        self.assertIsInstance(tests, list)
+        tests = SqlService.get_challenge_tests_by_id_and_limit(challenge_id)
 
-    def test_get_challenge_tests_by_id_fail_missing_id(self):
-        # Define test data
-        challenge_id = None
+        # Verify that call_stored_procedure was called with the correct parameters
+        mock_call_proc.assert_called_with("GetChallengeTestsByIdAndLimit", params=(challenge_id, expected_limit))
 
-        # Call the method
-        tests = SqlService.get_challenge_tests_by_id(challenge_id)
+        # Verify that raw_test_to_test was called for each raw test
+        self.assertEqual(mock_transform.call_count, 2)
 
-        # Assert that a list of tests is returned
-        self.assertIsNone(tests)
-
-    def test_get_challenge_comments_by_id_success(self):
-        # Define test data
-        challenge_id = 1
-
-        # Call the method
-        comments = SqlService.get_challenge_comments_by_id(challenge_id)
-
-        # Assert that a list of comments is returned
-        self.assertIsInstance(comments, list)
-
-    def test_get_challenge_comments_by_id_fail_missing_challenge_id(self):
-        # Define test data
-        challenge_id = None
-
-        # Call the method
-        comments = SqlService.get_challenge_comments_by_id(challenge_id)
-
-        self.assertIsNone(comments)
-
-    def test_get_challenge_submissions_by_id_and_account_id_success(self):
-        # Define test data
-        challenge_id = 1
-        account_id = 1
-
-        # Call the method
-        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
-
-        # Assert that a list of submissions is returned
-        self.assertIsInstance(submissions, list)
-
-    def test_get_challenge_submissions_by_id_and_account_id_fail_missing_challenge_id(self):
-        # Define test data
-        challenge_id = None
-        account_id = 1
-
-        # Call the method
-        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
-
-        self.assertIsNone(submissions)
-
-    def test_get_challenge_submissions_by_id_and_account_id_fail_missing_account_id(self):
-        # Define test data
-        challenge_id = 1
-        account_id = None
-
-        # Call the method
-        submissions = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
-
-        self.assertIsNone(submissions)
-
-    def test_update_challenge_name_by_id_success(self):
-        # Define test data
-        challenge_id = 1
-
-        # Fetch the original challenge
-        original_challenge = SqlService.get_challenge_by_id(challenge_id)
-
-        new_name = "Updated Challenge Name"
-
-        # Call the method to update the challenge name
-        update_result = SqlService.update_challenge_name_by_id(challenge_id, new_name)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-        # Fetch the updated challenge to verify the name change
-        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
-        self.assertEqual(updated_challenge.name, new_name)
-
-        # Optionally, reset the name to its original value
-        update_result = SqlService.update_challenge_name_by_id(challenge_id, original_challenge.name)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-    def test_update_challenge_name_by_id_fail_missing_challenge_name(self):
-        # Define test data
-        challenge_id = 1
-        new_name = None
-
-        # Call the method to update the challenge name
-        update_result = SqlService.update_challenge_name_by_id(challenge_id, new_name)
-
-        # Assert that the update was successful
-        self.assertIsNone(update_result)
-
-    def test_update_challenge_difficulty_by_id_success_easy(self):
-        # Define test data
-        challenge_id = 1
-
-        # Fetch the original challenge
-        original_challenge = SqlService.get_challenge_by_id(challenge_id)
-
-        new_difficulty = "Easy"  # Choose from 'Easy', 'Medium', 'Hard'
-
-        # Call the method to update the challenge difficulty
-        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, new_difficulty)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-        # Fetch the updated challenge to verify the difficulty change
-        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
-        self.assertEqual(updated_challenge.difficulty, new_difficulty)
-
-        # Optionally, reset the name to its original value
-        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, original_challenge.difficulty)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-    def test_update_challenge_difficulty_by_id_success_medium(self):
-        # Define test data
-        challenge_id = 1
-
-        # Fetch the original challenge
-        original_challenge = SqlService.get_challenge_by_id(challenge_id)
-
-        new_difficulty = "Medium"  # Choose from 'Easy', 'Medium', 'Hard'
-
-        # Call the method to update the challenge difficulty
-        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, new_difficulty)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-        # Fetch the updated challenge to verify the difficulty change
-        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
-        self.assertEqual(updated_challenge.difficulty, new_difficulty)
-
-        # Optionally, reset the name to its original value
-        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, original_challenge.difficulty)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-    def test_update_challenge_difficulty_by_id_success_hard(self):
-        # Define test data
-        challenge_id = 1
-
-        # Fetch the original challenge
-        original_challenge = SqlService.get_challenge_by_id(challenge_id)
-
-        new_difficulty = "Hard"  # Choose from 'Easy', 'Medium', 'Hard'
-
-        # Call the method to update the challenge difficulty
-        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, new_difficulty)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-        # Fetch the updated challenge to verify the difficulty change
-        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
-        self.assertEqual(updated_challenge.difficulty, new_difficulty)
-
-        # Optionally, reset the name to its original value
-        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, original_challenge.difficulty)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-    def test_update_challenge_difficulty_by_id_fail_invalid_difficulity(self):
-        # Define test data
-        challenge_id = 1
-
-        new_difficulty = "FooBar"  # Choose from 'Easy', 'Medium', 'Hard'
-
-        # Call the method to update the challenge difficulty
-        update_result = SqlService.update_challenge_difficulty_by_id(challenge_id, new_difficulty)
-
-        # Assert that the update was successful
-        self.assertIsNone(update_result)
-
-    def test_update_challenge_description_by_id_success(self):
-        # Define test data
-        challenge_id = 1  # Replace with an actual challenge ID
-
-        # Fetch the original challenge
-        original_challenge = SqlService.get_challenge_by_id(challenge_id)
-
-        new_description = "Updated description for the challenge."
-
-        # Call the method to update the challenge description
-        update_result = SqlService.update_challenge_description_by_id(challenge_id, new_description)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-        # Fetch the updated challenge to verify the description change
-        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
-        self.assertEqual(updated_challenge.description, new_description)
-
-        # Optionally, reset the description to its original value
-        update_result = SqlService.update_challenge_description_by_id(challenge_id, original_challenge.description)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-    def test_update_challenge_description_by_id_fail_missing_description(self):
-        # Define test data
-        challenge_id = 1
-        new_description = None
-
-        # Call the method to update the challenge description
-        update_result = SqlService.update_challenge_description_by_id(challenge_id, new_description)
-
-        # Assert that the update was successful
-        self.assertIsNone(update_result)
-
-    def test_update_challenge_stub_name_by_id_success(self):
-        # Define test data
-        challenge_id = 1
-
-        # Fetch the original challenge
-        original_challenge = SqlService.get_challenge_by_id(challenge_id)
-        new_stub_name = "UpdatedStubName"
-
-        # Call the method to update the challenge stub name
-        update_result = SqlService.update_challenge_stub_name_by_id(challenge_id, new_stub_name)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-        # Fetch the updated challenge to verify the stub name change
-        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
-        self.assertEqual(updated_challenge.stub_name, new_stub_name)
-
-        # Optionally, reset the stub name to its original value
-        update_result = SqlService.update_challenge_stub_name_by_id(challenge_id, original_challenge.stub_name)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-    def test_update_challenge_stub_name_by_id_fail_missing_stub_name(self):
-        # Define test data
-        challenge_id = 1
-        new_stub_name = None
-
-        # Call the method to update the challenge stub name
-        update_result = SqlService.update_challenge_stub_name_by_id(challenge_id, new_stub_name)
-
-        # Assert that the update was successful
-        self.assertIsNone(update_result)
-
-    def test_update_challenge_stub_block_by_id_success(self):
-        # Define test data
-        challenge_id = 1  # Replace with an actual challenge ID
-
-        # Fetch the original challenge
-        original_challenge = SqlService.get_challenge_by_id(challenge_id)
-
-        new_stub_block = "Updated stub block content"
-
-        # Call the method to update the challenge stub block
-        update_result = SqlService.update_challenge_stub_block_by_id(challenge_id, new_stub_block)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-        # Fetch the updated challenge to verify the stub block change
-        updated_challenge = SqlService.get_challenge_by_id(challenge_id)
-        self.assertEqual(updated_challenge.stub_block, new_stub_block)
-
-        # Optionally, reset the stub block to its original value
-        update_result = SqlService.update_challenge_stub_block_by_id(challenge_id, original_challenge.stub_block)
-
-        # Assert that the update was successful
-        self.assertTrue(update_result)
-
-    def test_update_challenge_stub_block_by_id_fail_missing_stub_block(self):
-        # Define test data
-        challenge_id = 1  # Replace with an actual challenge ID
-        new_stub_block = None
-
-        # Call the method to update the challenge stub block
-        update_result = SqlService.update_challenge_stub_block_by_id(challenge_id, new_stub_block)
-
-        # Assert that the update was successful
-        self.assertIsNone(update_result)
-
-    def test_delete_challenge_by_id_success(self):
-        # note we dont actually delete challenges but simply flag their is_deleted to 1 or 0
-        # Define test data
-        challenge_id = 1
-        IS_DELETED = 1
-
-        # Fetch the original challenge
-        original_challenge = SqlService.get_challenge_by_id(challenge_id)
-
-        # Call the method to delete the challenge
-        delete_result = SqlService.update_challenge_is_deleted_by_id(challenge_id, IS_DELETED)
-
-        # Assert that the deletion was successful
-        self.assertTrue(delete_result)
-
-        # Fetch the challenge to verify it is marked as deleted
-        deleted_challenge = SqlService.get_challenge_by_id(challenge_id)
-        self.assertEqual(deleted_challenge.is_deleted, IS_DELETED)
-
-        # Optionally, reset the is deleted to its original value
-        delete_result = SqlService.update_challenge_is_deleted_by_id(challenge_id, original_challenge.is_deleted)
-
-        # Assert that the deletion was successful
-        self.assertTrue(delete_result)
-
-    def test_delete_challenge_test_by_id_and_challenge_id_success(self):
-        # note we dont actually delete challenge tests but simply flag their is_deleted to 1 or 0
-        # Define test data
-        challenge_test_id = 2
-        IS_DELETED = 1
-
-        # Fetch the original challenge test
-        original_challenge_test = SqlService.get_challenge_test_by_id(challenge_test_id)
-
-        # Call the method to delete the challenge test
-        delete_result = SqlService.update_challenge_test_is_deleted_by_id(challenge_test_id, IS_DELETED)
-
-        # Assert that the deletion was successful
-        self.assertTrue(delete_result)
-
-        # Fetch the challenge test to verify it is marked as deleted
-        deleted_challenge_test = SqlService.get_challenge_test_by_id(challenge_test_id)
-        self.assertEqual(deleted_challenge_test.is_deleted, IS_DELETED)
-
-        # Optionally, reset the is deleted to its original value
-        delete_result = SqlService.update_challenge_test_is_deleted_by_id(challenge_test_id, original_challenge_test.is_deleted)
-
-        # Assert that the deletion was successful
-        self.assertTrue(delete_result)
-
-    def test_delete_challenge_comment_by_id_and_challenge_id_success(self):
-        # note we dont actually delete challenge comments but simply flag their is_deleted to 1 or 0
-        # Define test data
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_comment_to_comment')
+    def test_get_challenge_comment_by_id(self, mock_transform, mock_call_proc):
         comment_id = 1
-        IS_DELETED = 1
+        SqlService.get_challenge_comment_by_id(comment_id)
+        mock_call_proc.assert_called_with("GetChallengeCommentById", params=(comment_id, ), fetchone=True)
+        mock_transform.assert_called()
 
-        # Fetch the original challenge comment
-        original_challenge_comment = SqlService.get_challenge_comment_by_id(comment_id)
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_comment_to_comment')
+    def test_get_challenge_comments_by_id(self, mock_transform, mock_call_proc):
+        # Mock return value for call_stored_procedure
+        challenge_id = 1
+        mock_call_proc.return_value = [
+            {'id': 1, 'title': 'Comment 1', 'text': 'Text 1'}, 
+            {'id': 2, 'title': 'Comment 2', 'text': 'Text 2'}
+        ]
 
-        # Call the method to delete the challenge comment
-        delete_result = SqlService.update_challenge_comment_is_deleted_by_id(comment_id, IS_DELETED)
+        SqlService.get_challenge_comments_by_id(challenge_id)
 
-        # Assert that the deletion was successful
-        self.assertTrue(delete_result)
+        # Verify that call_stored_procedure was called correctly
+        mock_call_proc.assert_called_with("GetChallengeCommentsById", params=(challenge_id, ))
 
-        # Fetch the challenge comment to verify it is marked as deleted
-        deleted_challenge_comment = SqlService.get_challenge_comment_by_id(comment_id)
-        self.assertEqual(deleted_challenge_comment.is_deleted, IS_DELETED)
+        # Verify that raw_comment_to_comment was called for each raw comment
+        self.assertEqual(mock_transform.call_count, 2)
 
-        # Optionally, reset the is deleted to its original value
-        delete_result = SqlService.update_challenge_comment_is_deleted_by_id(comment_id, original_challenge_comment.is_deleted)
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_get_challenge_comments_by_id_none(self, mock_call_proc):
+        # Challenge ID to test
+        challenge_id = 1
 
-        # Assert that the deletion was successful
-        self.assertTrue(delete_result)
-  
-if __name__ == '__main__':
-    unittest.main()
+        # Mock call_stored_procedure to return None
+        mock_call_proc.return_value = None
+
+        # Call the method
+        result = SqlService.get_challenge_comments_by_id(challenge_id)
+
+        # Assertions
+        self.assertIsNone(result)
+        mock_call_proc.assert_called_with("GetChallengeCommentsById", params=(challenge_id, ))
+
+        # Reset and test with an empty list
+        mock_call_proc.reset_mock()
+        mock_call_proc.return_value = []
+
+        # Call the method again
+        result = SqlService.get_challenge_comments_by_id(challenge_id)
+
+        # Assertions
+        self.assertIsNone(result)
+        mock_call_proc.assert_called_with("GetChallengeCommentsById", params=(challenge_id, ))
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_submission_to_submission')
+    def test_get_challenge_submission_by_id(self, mock_transform, mock_call_proc):
+        submission_id = 1
+        SqlService.get_challenge_submission_by_id(submission_id)
+        mock_call_proc.assert_called_with("GetChallengeSubmissionById", params=(submission_id, ), fetchone=True)
+        mock_transform.assert_called()
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    @patch('classes.util.sqlservice.SqlService.raw_submission_to_submission')
+    def test_get_challenge_submissions_by_id_and_account_id(self, mock_transform, mock_call_proc):
+        # Mock return value for call_stored_procedure
+        challenge_id, account_id = 1, 1
+        mock_call_proc.return_value = [
+            {'id': 1, 'exec_time': 1.2, 'exec_chars': 100, 'exec_src': 'source code 1'}, 
+            {'id': 2, 'exec_time': 1.5, 'exec_chars': 200, 'exec_src': 'source code 2'}
+        ]
+
+        SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
+
+        # Verify that call_stored_procedure was called correctly
+        mock_call_proc.assert_called_with("GetChallengeSubmissionsByIdAndAccountId", params=(challenge_id, account_id))
+
+        # Verify that raw_submission_to_submission was called for each raw submission
+        self.assertEqual(mock_transform.call_count, 2)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_get_challenge_submissions_by_id_and_account_id_none(self, mock_call_proc):
+        # Set challenge_id and account_id
+        challenge_id, account_id = 1, 1
+
+        # Mock call_stored_procedure to return None
+        mock_call_proc.return_value = None
+
+        # Call the method
+        result = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
+
+        # Assertions
+        self.assertIsNone(result)
+        mock_call_proc.assert_called_with("GetChallengeSubmissionsByIdAndAccountId", params=(challenge_id, account_id))
+
+        # Reset and test with an empty list
+        mock_call_proc.reset_mock()
+        mock_call_proc.return_value = []
+
+        # Call the method again
+        result = SqlService.get_challenge_submissions_by_id_and_account_id(challenge_id, account_id)
+
+        # Assertions
+        self.assertIsNone(result)
+        mock_call_proc.assert_called_with("GetChallengeSubmissionsByIdAndAccountId", params=(challenge_id, account_id))
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_update_challenge_name_by_id(self, mock_call_proc):
+        challenge_id, name = 1, 'New Challenge Name'
+        result = SqlService.update_challenge_name_by_id(challenge_id, name)
+        mock_call_proc.assert_called_with("UpdateChallengeNameById", params=(challenge_id, name), update=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_update_challenge_difficulty_by_id(self, mock_call_proc):
+        challenge_id, difficulty = 1, 'Medium'
+        result = SqlService.update_challenge_difficulty_by_id(challenge_id, difficulty)
+        mock_call_proc.assert_called_with("UpdateChallengeDifficultyById", params=(challenge_id, difficulty), update=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_update_challenge_description_by_id(self, mock_call_proc):
+        challenge_id, description = 1, 'New Description'
+        result = SqlService.update_challenge_description_by_id(challenge_id, description)
+        mock_call_proc.assert_called_with("UpdateChallengeDescriptionById", params=(challenge_id, description), update=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_update_challenge_stub_name_by_id(self, mock_call_proc):
+        challenge_id, name = 1, 'New Stub Name'
+        result = SqlService.update_challenge_stub_name_by_id(challenge_id, name)
+        mock_call_proc.assert_called_with("UpdateChallengeStubNameById", params=(challenge_id, name), update=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_update_challenge_stub_block_by_id(self, mock_call_proc):
+        challenge_id, stub_block = 1, 'New Stub Block'
+        result = SqlService.update_challenge_stub_block_by_id(challenge_id, stub_block)
+        mock_call_proc.assert_called_with("UpdateChallengeStubBlockById", params=(challenge_id, stub_block), update=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_update_challenge_is_deleted_by_id(self, mock_call_proc):
+        challenge_id, is_deleted = 1, True
+        result = SqlService.update_challenge_is_deleted_by_id(challenge_id, is_deleted)
+        mock_call_proc.assert_called_with("UpdateChallengeIsDeletedById", params=(challenge_id, is_deleted), update=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_update_challenge_test_is_deleted_by_id(self, mock_call_proc):
+        challenge_test_id, is_deleted = 1, True
+        result = SqlService.update_challenge_test_is_deleted_by_id(challenge_test_id, is_deleted)
+        mock_call_proc.assert_called_with("UpdateChallengeTestIsDeletedById", params=(challenge_test_id, is_deleted), update=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_update_challenge_comment_is_deleted_by_id(self, mock_call_proc):
+        comment_id, is_deleted = 1, True
+        result = SqlService.update_challenge_comment_is_deleted_by_id(comment_id, is_deleted)
+        mock_call_proc.assert_called_with("UpdateChallengeCommentIsDeletedById", params=(comment_id, is_deleted), update=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_delete_challenge_by_id(self, mock_call_proc):
+        challenge_id = 1
+        result = SqlService.delete_challenge_by_id(challenge_id)
+        mock_call_proc.assert_called_with("DeleteChallengeById", params=(challenge_id, ), delete=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_delete_challenge_test_by_id_and_challenge_id(self, mock_call_proc):
+        challenge_test_id, challenge_id = 1, 2
+        result = SqlService.delete_challenge_test_by_id_and_challenge_id(challenge_test_id, challenge_id)
+        mock_call_proc.assert_called_with("DeleteChallengeTestByIdAndChallengeId", params=(challenge_test_id, challenge_id), delete=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_delete_challenge_comment_by_id_and_challenge_id(self, mock_call_proc):
+        comment_id, challenge_id = 1, 2
+        result = SqlService.delete_challenge_comment_by_id_and_challenge_id(comment_id, challenge_id)
+        mock_call_proc.assert_called_with("DeleteChallengeCommentByIdAndChallengeId", params=(comment_id, challenge_id), delete=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_purge_account_by_username(self, mock_call_proc):
+        username = 'testuser'
+        result = SqlService.purge_account_by_username(username)
+        mock_call_proc.assert_called_with("PurgeAccountByUsername", params=(username,), delete=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_purge_challenge_by_id(self, mock_call_proc):
+        challenge_id = 1
+        result = SqlService.purge_challenge_by_id(challenge_id)
+        mock_call_proc.assert_called_with("PurgeChallengeById", params=(challenge_id,), delete=True)
+        self.assertTrue(result)
+
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_purge_challenge_test_by_id(self, mock_call_proc):
+        challenge_test_id = 1
+        result = SqlService.purge_challenge_test_by_id(challenge_test_id)
+        mock_call_proc.assert_called_with("PurgeChallengeTestById", params=(challenge_test_id,), delete=True)
+        self.assertTrue(result)
+    
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_purge_challenge_comment_by_id(self, mock_call_proc):
+        challenge_comment_id = 1
+        result = SqlService.purge_challenge_comment_by_id(challenge_comment_id)
+        mock_call_proc.assert_called_with("PurgeChallengeCommentById", params=(challenge_comment_id,), delete=True)
+        self.assertTrue(result)
+    
+    @patch('classes.util.sqlservice.SqlService.call_stored_procedure')
+    def test_purge_challenge_submission_by_id(self, mock_call_proc):
+        challenge_submission_id = 1
+        result = SqlService.purge_challenge_submission_by_id(challenge_submission_id)
+        mock_call_proc.assert_called_with("PurgeChallengeSubmissionById", params=(challenge_submission_id,), delete=True)
+        self.assertTrue(result)
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

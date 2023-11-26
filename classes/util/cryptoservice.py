@@ -18,5 +18,3 @@ class CryptoService:
         m = hashlib.sha256()
         m.update(raw_string.encode('utf-8'))
         return  m.hexdigest()
-        
-
