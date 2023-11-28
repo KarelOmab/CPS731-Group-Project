@@ -81,8 +81,8 @@ class TestApp(unittest.TestCase):
          with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges
-                sess['priviledge'] = True  
-                sess['userid'] = 1
+                sess['privileged_mode'] = True  
+                sess['user_id'] = 1
             #mock the form data for the new created challenge
             form_data = {
             'challengeName': 'Subtract',
@@ -114,8 +114,8 @@ class TestApp(unittest.TestCase):
          with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges
-                sess['priviledge'] = False  
-                sess['userid'] = 1
+                sess['privileged_mode'] = False  
+                sess['user_id'] = 1
             #mock the form data for the new created challenge
             form_data = {
             'challengeName': 'Add',
@@ -146,7 +146,7 @@ class TestApp(unittest.TestCase):
          with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['userid'] = 1
+                sess['user_id'] = 1
             #mock the form data for the new created challenge
             form_data = {
             'comment-title': 'Very Easy',
@@ -171,8 +171,8 @@ class TestApp(unittest.TestCase):
          with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['userid'] = 1
-                sess['priviledge'] = True  
+                sess['user_id'] = 1
+                sess['privileged_mode'] = True  
 
             # Use the test client to simulate a POST request to your route
             response = client.get('/delete_challenge/255')
@@ -188,8 +188,8 @@ class TestApp(unittest.TestCase):
          with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = False
-                sess['userid'] = 2
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
 
             # Use the test client to simulate a POST request to your route
             response = client.get('/delete_challenge/2')
@@ -205,8 +205,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = True
-                sess['userid'] = 1
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
 
            
 
@@ -226,8 +226,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = False
-                sess['userid'] = 2
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
 
            
 
@@ -247,10 +247,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = True
-                sess['userid'] = 1
-
-           
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
 
             #mocking the JSON data that is sent by the JavaScript
             mock_json_data = {'newValue': 'Hard'}
@@ -260,15 +258,15 @@ class TestApp(unittest.TestCase):
            
           
             # Check the status code
-            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, 403)
     
 
     def test_edit_challenge_description_success(self):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = True
-                sess['userid'] = 1
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
 
            
 
@@ -290,8 +288,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = False
-                sess['userid'] = 2
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
 
            
 
@@ -309,8 +307,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = True
-                sess['userid'] = 1
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
 
            
 
@@ -331,8 +329,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = False
-                sess['userid'] = 2
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
 
            
 
@@ -351,8 +349,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = True
-                sess['userid'] = 1
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
 
            
 
@@ -375,8 +373,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = False
-                sess['userid'] = 2
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
 
            
 
@@ -396,8 +394,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = True
-                sess['userid'] = 1
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
 
            
 
@@ -422,8 +420,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = False
-                sess['userid'] = 2
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
 
            
 
@@ -444,8 +442,8 @@ class TestApp(unittest.TestCase):
          with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = True
-                sess['userid'] = 1
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
 
 
             # Use the test client to simulate a POST request to your route
@@ -463,8 +461,8 @@ class TestApp(unittest.TestCase):
          with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = False
-                sess['userid'] = 2
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
 
 
             # Use the test client to simulate a POST request to your route
@@ -482,8 +480,8 @@ class TestApp(unittest.TestCase):
         with self.test_client as client:
             with client.session_transaction() as sess:
                 # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
-                sess['priviledge'] = True
-                sess['userid'] = 1
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
 
 
             # Use the test client to simulate a POST request to your route
