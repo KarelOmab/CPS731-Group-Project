@@ -212,13 +212,7 @@
           messageDiv.remove();
         }, 1000); // Should match
       }
-
-      
     </script>
-
-            
-
-
 </head>
 
 
@@ -233,6 +227,10 @@
   {% endif %}
 {% endwith %}
 
+
+
+
+
 <div class="container mt-3">
   <div style = "padding: 10px; margin: 10px 0; text-align: center; " id="flash-message-container"></div>
   
@@ -241,266 +239,290 @@
       <div class="card-header">
           <h2 class="card-title">{{ challenge.name }}  {% if session['privileged_mode'] %}<a id = "edit_challenge_name"   onclick="editChallengeName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h2>
       </div>
-      <div class="card-body">
-          <h5 class="card-title">Difficulty: {{ challenge.difficulty }}    {% if session['privileged_mode'] %}<a  id = 'edit-difficulty'  onclick = "editDifficultyLevel('{{ challenge.id }}')""  class="btn btn-link">Edit</a> {% endif %}</h5>
-          <p class="card-text">Description: {{ challenge.description }} {% if session['privileged_mode'] %}<a  onclick="editChallengeDiscription('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</p>
-          
-          <!-- Challenge Examples -->
-          <ul class="list-group mb-3">
-              <h4 class="mb-3">Examples</h4>
-              {% for test in testcases %}
-              <li class="list-group-item">
-                  <div style="display:inline-block">
-                    <p style="display: inline">{{ challenge.stub_name }}</p>
-                    <p style="display: inline;">(</p>
-                    <p style="display: inline;">{{ test.test_input }}</p>
-                    <p style="display: inline;">)</p> 
-                    <p style="display: inline;"> <i class="fas fa-arrow-right"></i></p>
-                    <p style="display: inline;"> {{ test.test_output }}</p>
-                  </div>
+
+      <!-- put tab here-->
+      <div class="container mt-3">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#foo">Challenge</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#submissionsTab">Submissions</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#commentsTab">Comments</a>
+            </li>
+        </ul>
+      
+        <div class="tab-content">
+            <div class="tab-pane container active" id="foo">
+              <div class="card-body">
+                <h5 class="card-title">Difficulty: {{ challenge.difficulty }}    {% if session['privileged_mode'] %}<a  id = 'edit-difficulty'  onclick = "editDifficultyLevel('{{ challenge.id }}')""  class="btn btn-link">Edit</a> {% endif %}</h5>
+                <p class="card-text">Description: {{ challenge.description }} {% if session['privileged_mode'] %}<a  onclick="editChallengeDiscription('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</p>
+                
+                <!-- Challenge Examples -->
+                <ul class="list-group mb-3">
+                    <h4 class="mb-3">Examples</h4>
+                    {% for test in testcases %}
+                    <li class="list-group-item">
+                        <div style="display:inline-block">
+                          <p style="display: inline">{{ challenge.stub_name }}</p>
+                          <p style="display: inline;">(</p>
+                          <p style="display: inline;">{{ test.test_input }}</p>
+                          <p style="display: inline;">)</p> 
+                          <p style="display: inline;"> <i class="fas fa-arrow-right"></i></p>
+                          <p style="display: inline;"> {{ test.test_output }}</p>
+                        </div>
+                        {% if session['privileged_mode'] %}
+                          <a id = 'delete-test-case' name='{{ test.id }}'   onclick="deleteTestCase('{{challenge.id}}','{{test.id}}')"class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+      
+                <!-- Add Test Case -->
+                {% if session['privileged_mode'] %}
+                <h4 class="mb-3">Add Test Case</h4>
+                <form action="{{ url_for('add_test_case', challenge_id=challenge.id) }}" method="post">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class = "stubLabel" for="stubName">{{challenge.stub_name}}</label>
+                    </div>
+                    <div class="col">
+                      <input name = "inputParameters[]" type="text" class="form-control" id="inputParameters3" placeholder="input parameters" required>
+                    </div>
+                    <div class="col">
+                      <input name = "expectedOutput[]" type="text" class="form-control" id="expectedOutput3" placeholder="output" required>
+                    </div>
+                    <div class="col">
+                      <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-primary">Add Test Case</button>
+                    </div>
+                  </div> 
+                </form>
+                {% endif %}
+      
+                {% if session['user_id'] %}
+                
                   {% if session['privileged_mode'] %}
-                    <a id = 'delete-test-case' name='{{ test.id }}'   onclick="deleteTestCase('{{challenge.id}}','{{test.id}}')"class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
-                  {% endif %}
-              </li>
-              {% endfor %}
-          </ul>
-
-          <!-- Add Test Case -->
-          {% if session['privileged_mode'] %}
-          <h4 class="mb-3">Add Test Case</h4>
-          <form action="{{ url_for('add_test_case', challenge_id=challenge.id) }}" method="post">
-            <div class="form-row">
-              <div class="form-group">
-                <label class = "stubLabel" for="stubName">{{challenge.stub_name}}</label>
-              </div>
-              <div class="col">
-                <input name = "inputParameters[]" type="text" class="form-control" id="inputParameters3" placeholder="input parameters" required>
-              </div>
-              <div class="col">
-                <input name = "expectedOutput[]" type="text" class="form-control" id="expectedOutput3" placeholder="output" required>
-              </div>
-              <div class="col">
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-primary">Add Test Case</button>
-              </div>
-            </div> 
-          </form>
-          {% endif %}
-
-          {% if session['user_id'] %}
-          
-            {% if session['privileged_mode'] %}
-              <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}  <a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a></h4>
-              <h4 class="mb-3">Code Stub</h4>
-              <form id="submissionFormAdmin" action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
-                <div class="form-group">
-                    <textarea class="form-control" id="codeStub2" name="stub-block" rows="5">{{challenge.stub_block}}</textarea>
-                </div>
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
-              </form>
-            {% else %}
-              <form id="submissionForm">
-                  <h4 class="mb-3">Your Solution</h4>
-                  <div id="codeStub" style="height: 400px; width: 100%;"></div><br>
-                  <!-- Hidden input for the editor content -->
-                  <input type="hidden" id="editorContent" name="stub-block">
-                  <button style="margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Solution</button>
-              </form>
-              <script>
-                var challengeStubBlock = {{ challenge.stub_block | tojson }};
-                var editor = ace.edit("codeStub");
-                editor.setTheme("ace/theme/monokai");
-                editor.getSession().setMode("ace/mode/python");
-                editor.setShowPrintMargin(false);
-                editor.setValue(challengeStubBlock, 1); // Set cursor to the end of the line after setting the value
-                editor.setOptions({
-                    tabSize: 4
-                });
-            
-                document.getElementById('submissionForm').addEventListener('submit', function(e) {
-                    document.getElementById('editorContent').value = editor.getValue();
-                });
-            </script>
-              <div id="challenge-outputs">
-                <div id="result" style="display:none;">
-                    <h2>Results:</h2>
-                    <div id="responseMessage"></div>
-                </div>
-                
-                <div id="print" style="display:none;">
-                    <h2>Printout:</h2>
-                    <div id="printout"></div>
-                </div>
-                
-                <div id="time" style="display:none;">
-                    <h2>Time:</h2>
-                    <div id="executionTime"></div>
-                </div>
-                
-                <div id="chars" style="display:none;">
-                    <h2>Characters:</h2>
-                    <div id="executionChars"></div>
-                </div>
-            </div>
-            <script>
-              $(document).ready(function() {
-              $('#submissionForm').on('submit', function(event) {
-                  event.preventDefault(); // Prevent default form submission
-
-                  var $form = $(this);
-                  var $submitButton = $form.find('button[type="submit"]');
-                  $submitButton.prop('disabled', true).html('<span class="spinner"></span> Loading...'); // Disable button and show spinner
-
-                  var $form = $(this);
-                  $.ajax({
-                      url: '/submission/{{ challenge.id }}', // URL for the POST request
-                      method: 'POST',
-                      data: $form.serialize(),
-                      dataType: 'json', // expecting JSON response
-                      success: function(data) {
-                          displayResults(data);
-                          //window.location.reload();
-                      },
-                      error: function(xhr) {
-                          var data = xhr.responseJSON || JSON.parse(xhr.responseText);
-                          displayResults(data);
-                          $submitButton.prop('disabled', false).html('Submit Solution');
-                      },
-                      complete: function(xhr, textStatus) {
-                        $submitButton.prop('disabled', false).html('Submit Solution');
-                        console.log('Request completed with status:', textStatus);
-                      }
+                    <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}  <a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a></h4>
+                    <h4 class="mb-3">Code Stub</h4>
+                    <form id="submissionFormAdmin" action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
+                      <div class="form-group">
+                          <textarea class="form-control" id="codeStub2" name="stub-block" rows="5">{{challenge.stub_block}}</textarea>
+                      </div>
+                      <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
+                    </form>
+                  {% else %}
+                    <form id="submissionForm">
+                        <h4 class="mb-3">Your Solution</h4>
+                        <div id="codeStub" style="height: 400px; width: 100%;"></div><br>
+                        <!-- Hidden input for the editor content -->
+                        <input type="hidden" id="editorContent" name="stub-block">
+                        <button style="margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Solution</button>
+                    </form>
+                    <script>
+                      var challengeStubBlock = {{ challenge.stub_block | tojson }};
+                      var editor = ace.edit("codeStub");
+                      editor.setTheme("ace/theme/monokai");
+                      editor.getSession().setMode("ace/mode/python");
+                      editor.setShowPrintMargin(false);
+                      editor.setValue(challengeStubBlock, 1); // Set cursor to the end of the line after setting the value
+                      editor.setOptions({
+                          tabSize: 4
+                      });
+                  
+                      document.getElementById('submissionForm').addEventListener('submit', function(e) {
+                          document.getElementById('editorContent').value = editor.getValue();
+                      });
+                  </script>
+                    <div id="challenge-outputs">
+                      <div id="result" style="display:none;">
+                          <h2>Results:</h2>
+                          <div id="responseMessage"></div>
+                      </div>
+                      
+                      <div id="print" style="display:none;">
+                          <h2>Printout:</h2>
+                          <div id="printout"></div>
+                      </div>
+                      
+                      <div id="time" style="display:none;">
+                          <h2>Time:</h2>
+                          <div id="executionTime"></div>
+                      </div>
+                      
+                      <div id="chars" style="display:none;">
+                          <h2>Characters:</h2>
+                          <div id="executionChars"></div>
+                      </div>
+                  </div>
+                  <script>
+                    $(document).ready(function() {
+                    $('#submissionForm').on('submit', function(event) {
+                        event.preventDefault(); // Prevent default form submission
+      
+                        var $form = $(this);
+                        var $submitButton = $form.find('button[type="submit"]');
+                        $submitButton.prop('disabled', true).html('<span class="spinner"></span> Loading...'); // Disable button and show spinner
+      
+                        var $form = $(this);
+                        $.ajax({
+                            url: '/submission/{{ challenge.id }}', // URL for the POST request
+                            method: 'POST',
+                            data: $form.serialize(),
+                            dataType: 'json', // expecting JSON response
+                            success: function(data) {
+                                displayResults(data);
+                                //window.location.reload();
+                            },
+                            error: function(xhr) {
+                                var data = xhr.responseJSON || JSON.parse(xhr.responseText);
+                                displayResults(data);
+                                $submitButton.prop('disabled', false).html('Submit Solution');
+                            },
+                            complete: function(xhr, textStatus) {
+                              $submitButton.prop('disabled', false).html('Submit Solution');
+                              console.log('Request completed with status:', textStatus);
+                            }
+                        });
+                    });
+      
+                    function displayResults(data) {
+                        //if(data.flash) { // Check if the flash message is present
+                        //   alert(data.flash.message); // Display an alert instead of placing in div
+                        //}
+      
+                        if(data.message) {
+                            $('#responseMessage').text(data.message);
+                            $('#result').show();
+                        } else if (data.flash.message) {
+                            $('#responseMessage').text(data.flash.message);
+                            $('#result').show();
+                        }
+      
+                        if(data.exec_time) {
+                            $('#executionTime').text(data.exec_time);
+                            $('#time').show();
+                        } else {
+                            $('#time').hide();
+                        }
+      
+                        if(data.exec_chars) {
+                            $('#executionChars').text(data.exec_chars);
+                            $('#chars').show();
+                        } else {
+                            $('#chars').hide();
+                        }
+      
+                        // Check the length of data.printout
+                        if (data.printout && data.printout.length > 0) {
+                            $('#printout').html(data.printout.replace(/\n/g, '<br>'));
+                            $('#print').show();  //ensure visibility
+                        } else {
+                            $('#print').hide();  //hide if no content
+                        }
+                    }
                   });
-              });
-
-              function displayResults(data) {
-                  //if(data.flash) { // Check if the flash message is present
-                  //   alert(data.flash.message); // Display an alert instead of placing in div
-                  //}
-
-                  if(data.message) {
-                      $('#responseMessage').text(data.message);
-                      $('#result').show();
-                  } else if (data.flash.message) {
-                      $('#responseMessage').text(data.flash.message);
-                      $('#result').show();
-                  }
-
-                  if(data.exec_time) {
-                      $('#executionTime').text(data.exec_time);
-                      $('#time').show();
-                  } else {
-                      $('#time').hide();
-                  }
-
-                  if(data.exec_chars) {
-                      $('#executionChars').text(data.exec_chars);
-                      $('#chars').show();
-                  } else {
-                      $('#chars').hide();
-                  }
-
-                  // Check the length of data.printout
-                  if (data.printout && data.printout.length > 0) {
-                      $('#printout').html(data.printout.replace(/\n/g, '<br>'));
-                      $('#print').show();  //ensure visibility
-                  } else {
-                      $('#print').hide();  //hide if no content
-                  }
-              }
-            });
-            </script>
-            {% endif %}
-          {% endif %}
-          <hr>
-          {% if session['user_id'] and not session['privileged_mode'] %}
-          <div id="submissions-section">
-            <h2>Your Submissions</h2>
-            {% if submission %}
-                <table class="table table-striped table-hover table-bordered">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Submitted At</th>
-                            <th>Execution Time</th>
-                            <th>Characters</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for submission in submission %}
-                            <tr>
-                                <td>{{ submission.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                                <td>{{ '%.3f'|format(submission.exec_time) }}</td>
-                                <td>{{ submission.exec_chars }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>No submissions yet.</p>
-            {% endif %}
-        </div>
-        
-          {% endif %}
-         
-          <div style = "padding: 1vw;">
-            {% if session['user_id'] %}
-              <h4 class="mb-3">Add a Comment</h4>
-              <form action="{{ url_for('submit_comment', challenge_id=challenge.id) }}" method="post">
-                <div class="form-group">
-                  <label class = "comment-name" for="comment-name">Title</label>
-                  <input name = "comment-title" type="text" class="form-control" id="comment-title" placeholder="Comment Title" required>
-                  <label  for="comment-content">Comment</label>
-                  <textarea class="form-control" id="comment_content" name="comment-content" rows="5" placeholder="Add your comment here"></textarea>
-                </div> 
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Comment</button>
-              </form>
-          {% endif %}
-          <h4 class="mb-3">Comments</h4>
-          <li class="list-group-item">
-            {% if not comments %}
-            <p>No comments yet</p>
-            {% endif %}
-
-            {% if comments %}
-            {% for comment in comments %}
-            <div class="container my-4">
-              <!-- Check if the comment is not marked as deleted -->
-              {% if not comment.is_deleted %}
-              <div class="card">
-                  <div class="card-header">
-                      <!-- Display username and the creation date of the comment -->
-                      <strong>{{ comment.username }}</strong> commented on {{ comment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
-                  </div>
-                  <div class="card-body">
-                      <!-- Display the title of the comment -->
-                      <h5 class="card-title">{{ comment.title }}</h5>
-                      <!-- Display the text of the comment -->
-                      <p class="card-text">{{ comment.text }}</p>
-                  </div>
-                  <!-- To allow modertator to delete -->
-                  <div class="card-footer text-end">
-                      <!-- Delete button (you may want to include a confirmation before deletion) -->
-                      {% if session['privileged_mode'] %}
-                        <button class="btn btn-danger btn-sm" onclick="deleteComment('{{ comment.id}}' , '{{challenge.id}}')">Delete</button>
-                      {% endif %}
-                  </div>
+                  </script>
+                  {% endif %}
+                {% endif %}
+            </div>
+            </div>
+            <div class="tab-pane container fade" id="submissionsTab">
+              <br>
+                {% if session['user_id'] and not session['privileged_mode'] %}
+                <div id="submissions-section">
+                  {% if submission %}
+                      <table class="table table-striped table-hover table-bordered">
+                          <thead class="thead-dark">
+                              <tr>
+                                  <th>Submitted At</th>
+                                  <th>Execution Time</th>
+                                  <th>Characters</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              {% for submission in submission %}
+                                  <tr>
+                                      <td>{{ submission.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                      <td>{{ '%.3f'|format(submission.exec_time) }}</td>
+                                      <td>{{ submission.exec_chars }}</td>
+                                  </tr>
+                              {% endfor %}
+                          </tbody>
+                      </table>
+                  {% else %}
+                      <h4>No submissions yet.</h4>
+                  {% endif %}
               </div>
+              
               {% endif %}
             </div>
-          {% endfor %}
-          {% endif%}
-            
-          </li>
+            <div class="tab-pane container fade" id="commentsTab">
+                <br>
+                <div style = "padding: 1vw;">
+                  {% if session['user_id'] %}
+                    <h4 class="mb-3">Add a Comment</h4>
+                    <form action="{{ url_for('submit_comment', challenge_id=challenge.id) }}" method="post">
+                      <div class="form-group">
+                        <label class = "comment-name" for="comment-name">Title</label>
+                        <input name = "comment-title" type="text" class="form-control" id="comment-title" placeholder="Comment Title" required>
+                        <label  for="comment-content">Comment</label>
+                        <textarea class="form-control" id="comment_content" name="comment-content" rows="5" placeholder="Add your comment here"></textarea>
+                      </div> 
+                      <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Comment</button>
+                    </form>
+                {% endif %}
+                <h4 class="mb-3">Comments</h4>
+                <li class="list-group-item">
+                  {% if not comments %}
+                  <p>No comments yet</p>
+                  {% endif %}
+      
+                  {% if comments %}
+                    {% for comment in comments %}
+                    <div class="container my-4">
+                      <!-- Check if the comment is not marked as deleted -->
+                      {% if not comment.is_deleted %}
+                      <div class="card">
+                          <div class="card-header">
+                              <!-- Display username and the creation date of the comment -->
+                              <strong>{{ comment.username }}</strong> commented on {{ comment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                          </div>
+                          <div class="card-body">
+                              <!-- Display the title of the comment -->
+                              <h5 class="card-title">{{ comment.title }}</h5>
+                              <!-- Display the text of the comment -->
+                              <p class="card-text">{{ comment.text }}</p>
+                          </div>
+                          <!-- To allow modertator to delete -->
+                          <div class="card-footer text-end">
+                              <!-- Delete button (you may want to include a confirmation before deletion) -->
+                              {% if session['privileged_mode'] %}
+                                <button class="btn btn-danger btn-sm" onclick="deleteComment('{{ comment.id}}' , '{{challenge.id}}')">Delete</button>
+                              {% endif %}
+                          </div>
+                      </div>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                {% endif%}
+                  
+                </li>
+                </div>
+            </div>
         </div>
-          
-
       </div>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+
+
+
+      
   </div>
 
-  <!-- Submissions -->
-  <!-- ... -->
-
-  <!-- Comments -->
-  <!-- ... -->
 </div>
 </body>
 {% include 'footer.html' %}
