@@ -246,9 +246,11 @@
             <li class="nav-item">
                 <a class="nav-link active" data-bs-toggle="tab" href="#foo">Challenge</a>
             </li>
+            {% if session['user_id'] and not session['privileged_mode'] %}
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="tab" href="#submissionsTab">Submissions</a>
             </li>
+            {% endif %}
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="tab" href="#commentsTab">Comments</a>
             </li>
