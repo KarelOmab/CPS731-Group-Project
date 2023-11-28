@@ -331,11 +331,17 @@ class App:
             A JSON response containing the result of the submission attempt, along with appropriate HTTP status
             codes. This response includes success messages, execution details, and error messages as applicable.
         """
+
+        
+
         if request.method != 'POST':
             abort(404)
 
         user_code = request.form.get('stub-block')
 
+        print("USER CODE")
+        print(user_code)
+  
         # Retrieve challenge and test data from database
         challenge = SqlService.get_challenge_by_id(challenge_id)
         tests = SqlService.get_challenge_tests_by_id(challenge_id)
@@ -358,6 +364,8 @@ class App:
 
         result_dict = DockerService.execute_code(challenge, tests, user_code)
         output_str = "\n".join(result_dict['print_outputs'])
+
+        print(result_dict)
 
         if result_dict['tests_passed'] == result_dict['tests_total']:
             try:
@@ -635,7 +643,6 @@ class App:
 
         try:
             new_stub_block = request.form['stub-block']
-            
             if session['privileged_mode']:
                 SqlService.update_challenge_stub_block_by_id(challenge_id, new_stub_block)
                 #returning an Okay message to the caller

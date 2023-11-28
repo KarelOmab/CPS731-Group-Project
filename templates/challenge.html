@@ -15,6 +15,8 @@
     <!-- This is just display symbols such as arrows -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <style>
       .spinner {
           display: inline-block;
@@ -289,42 +291,56 @@
             {% if session['privileged_mode'] %}
               <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}  <a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a></h4>
               <h4 class="mb-3">Code Stub</h4>
-              <form action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
+              <form id="submissionFormAdmin" action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
+                <div class="form-group">
+                    <textarea class="form-control" id="codeStub2" name="stub-block" rows="5">{{challenge.stub_block}}</textarea>
+                </div>
+                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
+              </form>
             {% else %}
               <form id="submissionForm">
-                <h4 class="mb-3">Your Solution</h4>
-            {% endif %}
-                <div class="form-group">
-                    <textarea class="form-control" id="codeStub" name="stub-block" rows="5">{{challenge.stub_block}}</textarea>
+                  <h4 class="mb-3">Your Solution</h4>
+                  <div id="codeStub" style="height: 400px; width: 100%;"></div><br>
+                  <!-- Hidden input for the editor content -->
+                  <input type="hidden" id="editorContent" name="stub-block">
+                  <button style="margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Solution</button>
+              </form>
+              <script>
+                var challengeStubBlock = {{ challenge.stub_block | tojson }};
+                var editor = ace.edit("codeStub");
+                editor.setTheme("ace/theme/monokai");
+                editor.getSession().setMode("ace/mode/python");
+                editor.setShowPrintMargin(false);
+                editor.setValue(challengeStubBlock, 1); // Set cursor to the end of the line after setting the value
+                editor.setOptions({
+                    tabSize: 4
+                });
+            
+                document.getElementById('submissionForm').addEventListener('submit', function(e) {
+                    document.getElementById('editorContent').value = editor.getValue();
+                });
+            </script>
+              <div id="challenge-outputs">
+                <div id="result" style="display:none;">
+                    <h2>Results:</h2>
+                    <div id="responseMessage"></div>
                 </div>
-
-                {% if session['privileged_mode'] %}
-                  <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
-                {% else %}
-                  <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Solution</button>
-                {% endif %}
-            </form>
-            <div id="challenge-outputs">
-              <div id="result" style="display:none;">
-                  <h2>Results:</h2>
-                  <div id="responseMessage"></div>
-              </div>
-              
-              <div id="print" style="display:none;">
-                  <h2>Printout:</h2>
-                  <div id="printout"></div>
-              </div>
-              
-              <div id="time" style="display:none;">
-                  <h2>Time:</h2>
-                  <div id="executionTime"></div>
-              </div>
-              
-              <div id="chars" style="display:none;">
-                  <h2>Characters:</h2>
-                  <div id="executionChars"></div>
-              </div>
-          </div>
+                
+                <div id="print" style="display:none;">
+                    <h2>Printout:</h2>
+                    <div id="printout"></div>
+                </div>
+                
+                <div id="time" style="display:none;">
+                    <h2>Time:</h2>
+                    <div id="executionTime"></div>
+                </div>
+                
+                <div id="chars" style="display:none;">
+                    <h2>Characters:</h2>
+                    <div id="executionChars"></div>
+                </div>
+            </div>
             <script>
               $(document).ready(function() {
               $('#submissionForm').on('submit', function(event) {
@@ -341,8 +357,8 @@
                       data: $form.serialize(),
                       dataType: 'json', // expecting JSON response
                       success: function(data) {
-                          //displayResults(data);
-                          window.location.reload();
+                          displayResults(data);
+                          //window.location.reload();
                       },
                       error: function(xhr) {
                           var data = xhr.responseJSON || JSON.parse(xhr.responseText);
@@ -391,9 +407,9 @@
                       $('#print').hide();  //hide if no content
                   }
               }
-          });
-
-          </script>
+            });
+            </script>
+            {% endif %}
           {% endif %}
           <hr>
           {% if session['user_id'] and not session['privileged_mode'] %}
