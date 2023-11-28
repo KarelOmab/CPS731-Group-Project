@@ -338,9 +338,6 @@ class App:
             abort(404)
 
         user_code = request.form.get('stub-block')
-
-        print("USER CODE")
-        print(user_code)
   
         # Retrieve challenge and test data from database
         challenge = SqlService.get_challenge_by_id(challenge_id)
@@ -364,8 +361,6 @@ class App:
 
         result_dict = DockerService.execute_code(challenge, tests, user_code)
         output_str = "\n".join(result_dict['print_outputs'])
-
-        print(result_dict)
 
         if result_dict['tests_passed'] == result_dict['tests_total']:
             try:
