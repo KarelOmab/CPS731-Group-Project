@@ -22,7 +22,7 @@ class App:
         self.app.add_url_rule('/logout', 'logout', self.logout)
         self.app.add_url_rule('/login', 'login', self.login)
         self.app.add_url_rule('/submit_login', 'submit_login', self.submit_login, methods=['POST'])
-        self.app.add_url_rule('/challenges', 'challenges', self.challenges) # I added the methods=['POST']
+        self.app.add_url_rule('/challenges', 'challenges', self.challenges)
         self.app.add_url_rule('/sort_challenges/<sorting_criteria>', 'sort_challenges', self.sort_challenges, methods=['POST'])
         self.app.add_url_rule('/insert_challenge', 'insert_challenge', self.insert_challenge)
         self.app.add_url_rule('/submit_challenge', 'submit_challenge', self.submit_challenge, methods=['POST'])
@@ -106,7 +106,7 @@ class App:
                     return render_template('register.html', error_message='Email already in use'), 400
             except Exception as e:
             # Handle other exceptions (e.g., database connection issues)
-                render_template('register.html', error_message='An error occured while registering - please try again later'), 500
+                return render_template('register.html', error_message='An error occurred while registering - please try again later'), 500
         return redirect(url_for('register')), 403  # 403 Forbidden
             
     def submit_login(self):
@@ -198,8 +198,6 @@ class App:
         """
         session['sorting_criteria'] = sorting_criteria
         return redirect(url_for('challenges'))
-       
-        
     
     def challenges(self):
         """
@@ -289,14 +287,13 @@ class App:
                 for input_case, output_case in zip(input_test_cases,output_test_cases):
                     last_id_inserted = SqlService.insert_challenge_test(last_id[0]['LAST_INSERT_ID()'],input_case,output_case)
             
-
                 if last_id != None:
                     challenges = SqlService.get_all_challenges()
 
         except RuntimeError as err:
             print(f"Error! {err}")
 
-        return redirect(url_for('challenges')) 
+        return redirect(url_for('challenges'))
     
 
     def submission(self, challenge_id):

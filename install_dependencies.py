@@ -7,11 +7,14 @@ dependencies = [
     "mysql-connector-python",
     "python-dotenv",
     "docker",
-    "pip install coverage"
+    "coverage"
 ]
 
 def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    except:
+        pass
 
 if __name__ == "__main__":
     for dependency in dependencies:
