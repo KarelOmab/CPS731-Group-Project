@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="h-100">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
     <!-- Bootstrap JS, Popper.js, and jQuery are included at the end of the body for performance reasons -->
-    <script src= "https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
@@ -16,95 +17,92 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
     <script>
         //Function that handles editing the challenge difficulty      
-        function editDifficultyLevel(challenge_id)
-        {
-          // Prompt the admin for input
-          if (userInput = prompt("Please enter the new difficulty level:")) 
-            {
-              $.ajax({
-                  url: '/edit_challenge_difficulty/'+challenge_id,
-                  method: 'POST',
-                  contentType: 'application/json',
-                  data: JSON.stringify({
-                  newValue: userInput  // Sending the data
-                  }),
-                  success: function(response) {
-                      window.location.reload();
-                  },
-                  error: function() {
-                      alert("Error editing challenge difficulty level.");
-                  }
-              });
-          }
+        function editDifficultyLevel(challenge_id) {
+            // Prompt the admin for input
+            if (userInput = prompt("Please enter the new difficulty level:")) {
+                $.ajax({
+                    url: '/edit_challenge_difficulty/' + challenge_id,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        newValue: userInput  // Sending the data
+                    }),
+                    success: function (response) {
+                        window.location.reload();
+                    },
+                    error: function () {
+                        alert("Error editing challenge difficulty level.");
+                    }
+                });
+            }
         }
 
         // JavaScript function to handle comment deletion
-        function deleteComment(commentId,challengeId) {
+        function deleteComment(commentId, challengeId) {
 
-        // Confirmation dialog before deletion
-        if (confirm('Are you sure you want to delete this comment?')) 
-        {
-            $.ajax({
-                url: '/delete_comment/' + challengeId + "/" + commentId,
-                method: 'POST',
-                success: function(response) {
-                    window.location.reload();
-                },
-                error: function() {
-                    alert("Error deleting challenge comment.");
-                }
-            });
-      }
-      }
+            // Confirmation dialog before deletion
+            if (confirm('Are you sure you want to delete this comment?')) {
+                $.ajax({
+                    url: '/delete_comment/' + challengeId + "/" + commentId,
+                    method: 'POST',
+                    success: function (response) {
+                        window.location.reload();
+                    },
+                    error: function () {
+                        alert("Error deleting challenge comment.");
+                    }
+                });
+            }
+        }
 
         // JavaScript function to handle editing challenge name
         function editChallengeName(challengeId) {
 
-        // Confirmation dialog before deletion
-        if (userInput = prompt("Please enter the new challenge name:")) {
-                    $.ajax({
-                        url: '/edit_challenge_name/' + challengeId,
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                          new_challenge_name: userInput   // Sending the data
-                        }),
-                        success: function(response) {
-                            window.location.reload();
-                        },
-                        error: function() {
-                            alert("Error editing challenge name.");
-                        }
-                    });
-      }
-    }
-       
-       // JavaScript function to handle editing challenge description
-       function editChallengeDiscription(challengeId) {
-
-        // getting new challenge description from the user
-        if (userInput = prompt("Please enter the new challenge description:")) {
-                    $.ajax({
-                        url: '/edit_challenge_description/' + challengeId,
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                          new_challenge_discr: userInput  // Sending the data
-                        }),
-                        success: function(response) {
-                            window.location.reload();
-                        },
-                        error: function() {
-                            alert("Error editing challenge description.");
-                        }
-                    });
+            // Confirmation dialog before deletion
+            if (userInput = prompt("Please enter the new challenge name:")) {
+                $.ajax({
+                    url: '/edit_challenge_name/' + challengeId,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        new_challenge_name: userInput   // Sending the data
+                    }),
+                    success: function (response) {
+                        window.location.reload();
+                    },
+                    error: function () {
+                        alert("Error editing challenge name.");
+                    }
+                });
+            }
         }
-      }
 
-      // JavaScript function to handle deleting a test case
-      function deleteTestCase(challengeId,testCaseId) {
+        // JavaScript function to handle editing challenge description
+        function editChallengeDiscription(challengeId) {
 
-        // Confirmation dialog before deletion
+            // getting new challenge description from the user
+            if (userInput = prompt("Please enter the new challenge description:")) {
+                $.ajax({
+                    url: '/edit_challenge_description/' + challengeId,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        new_challenge_discr: userInput  // Sending the data
+                    }),
+                    success: function (response) {
+                        window.location.reload();
+                    },
+                    error: function () {
+                        alert("Error editing challenge description.");
+                    }
+                });
+            }
+        }
+
+        // JavaScript function to handle deleting a test case
+        function deleteTestCase(challengeId, testCaseId) {
+
+            // Confirmation dialog before deletion
             /*fetch('/delete_test_case/' + testCaseId, { 
               method: 'POST',
               headers: {
@@ -129,72 +127,71 @@
                     console.error('Error:', error);
                 });
         }*/
-        if (confirm('Are you sure you want to delete this test case?')) {
-                    $.ajax({
-                        url: '/delete_test_case/' + challengeId + '/' + testCaseId,
-                        method: 'POST',
-                        success: function(response) {
-                            window.location.reload();
-                        },
-                        error: function() {
-                            alert("Error deleting test case.");
-                        }
-                    });
-                }
+            if (confirm('Are you sure you want to delete this test case?')) {
+                $.ajax({
+                    url: '/delete_test_case/' + challengeId + '/' + testCaseId,
+                    method: 'POST',
+                    success: function (response) {
+                        window.location.reload();
+                    },
+                    error: function () {
+                        alert("Error deleting test case.");
+                    }
+                });
+            }
 
-      }
+        }
 
-      // JavaScript function to handle editing challenge stub name
-      function editStubName(challengeId) {
-      
-        // getting user input for new stub name
-        if (userInput = prompt("Please enter the new challenge stub name:")) {
-                    $.ajax({
-                        url: '/edit_challenge_stub-name/' + challengeId,
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                          stub_name : userInput  // Sending the data
-                        }),
-                        success: function(response) {
-                            window.location.reload();
-                        },
-                        error: function() {
-                            alert("Error editing challenge stub name.");
-                        }
-                    });
-      }
-    }
+        // JavaScript function to handle editing challenge stub name
+        function editStubName(challengeId) {
 
-      function showFlashMessage(message) {
-        // Create the message element
-        var messageDiv = document.createElement('div');
-        messageDiv.className = 'flash-message'; // Add your custom class for styling
-        messageDiv.textContent = message;
+            // getting user input for new stub name
+            if (userInput = prompt("Please enter the new challenge stub name:")) {
+                $.ajax({
+                    url: '/edit_challenge_stub-name/' + challengeId,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        stub_name: userInput  // Sending the data
+                    }),
+                    success: function (response) {
+                        window.location.reload();
+                    },
+                    error: function () {
+                        alert("Error editing challenge stub name.");
+                    }
+                });
+            }
+        }
 
-        // Append it to the flash message container
-        document.getElementById('flash-message-container').appendChild(messageDiv);
+        function showFlashMessage(message) {
+            // Create the message element
+            var messageDiv = document.createElement('div');
+            messageDiv.className = 'flash-message'; // Add your custom class for styling
+            messageDiv.textContent = message;
 
-        // Set a timeout to remove the flash message after 3000ms (3 seconds)
-        setTimeout(function() {
-          messageDiv.remove();
-        }, 3000);
-      }
+            // Append it to the flash message container
+            document.getElementById('flash-message-container').appendChild(messageDiv);
 
-      function fadeDiv()
-      {
-        messageDiv.style.opacity = '0';
+            // Set a timeout to remove the flash message after 3000ms (3 seconds)
+            setTimeout(function () {
+                messageDiv.remove();
+            }, 3000);
+        }
 
-        // Wait for the transition to finish before removing
-        setTimeout(function() {
-          messageDiv.remove();
-        }, 1000); // Should match
-      }
+        function fadeDiv() {
+            messageDiv.style.opacity = '0';
 
-      
+            // Wait for the transition to finish before removing
+            setTimeout(function () {
+                messageDiv.remove();
+            }, 1000); // Should match
+        }
+
+
     </script>
 
-            
+
 
 
 </head>
@@ -202,14 +199,14 @@
 
 
 <body class="d-flex flex-column h-100">
-{% include 'navbar.html' %}
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
+    {% include 'navbar.html' %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
     {% for category, message in messages %}
     <div class="alert alert-{{ category }}">{{ message }}</div>
     {% endfor %}
-  {% endif %}
-{% endwith %}
+    {% endif %}
+    {% endwith %}
 
     {% if session['user_id'] %}
     <div>
@@ -251,182 +248,198 @@
         });
     </script>
 
-<div class="container mt-3">
-  <div style = "padding: 10px; margin: 10px 0; text-align: center; " id="flash-message-container"></div>
-  
-  
-  <div class="card">
-      <div class="card-header">
-          <h2 class="card-title">{{ challenge.name }}  {% if session['privileged_mode'] %}<a id = "edit_challenge_name"   onclick="editChallengeName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h2>
-      </div>
-      <div class="card-body">
-          <h5 class="card-title">Difficulty: {{ challenge.difficulty }}    {% if session['privileged_mode'] %}<a  id = 'edit-difficulty'  onclick = "editDifficultyLevel('{{ challenge.id }}')""  class="btn btn-link">Edit</a> {% endif %}</h5>
-          <p class="card-text">Description: {{ challenge.description }} {% if session['privileged_mode'] %}<a  onclick="editChallengeDiscription('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</p>
-          
-          <!-- Challenge Examples -->
-          <ul class="list-group mb-3">
-              <h4 class="mb-3">Examples</h4>
-              {% for test in testcases %}
-              <li class="list-group-item">
-                  <div style="display:inline-block">
-                    <p style="display: inline">{{ challenge.stub_name }}</p>
-                    <p style="display: inline;">(</p>
-                    <p style="display: inline;">{{ test.test_input }}</p>
-                    <p style="display: inline;">)</p> 
-                    <p style="display: inline;"> <i class="fas fa-arrow-right"></i></p>
-                    <p style="display: inline;"> {{ test.test_output }}</p>
-                  </div>
-                  {% if session['privileged_mode'] %}
-                    <a id = 'delete-test-case' name='{{ test.id }}'   onclick="deleteTestCase('{{challenge.id}}','{{test.id}}')"class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
-                  {% endif %}
-              </li>
-              {% endfor %}
-          </ul>
+    <div class="container mt-3">
+        <div style="padding: 10px; margin: 10px 0; text-align: center; " id="flash-message-container"></div>
 
-          <!-- Add Test Case -->
-          {% if session['privileged_mode'] %}
-          <h4 class="mb-3">Add Test Case</h4>
-          <form action="{{ url_for('add_test_case', challenge_id=challenge.id) }}" method="post">
-            <div class="form-row">
-              <div class="form-group">
-                <label class = "stubLabel" for="stubName">{{ challenge.stub_name }}</label>
-              </div>
-              <div class="col">
-                <input name = "inputParameters[]" type="text" class="form-control" id="inputParameters3" placeholder="input parameters" required>
-              </div>
-              <div class="col">
-                <input name = "expectedOutput[]" type="text" class="form-control" id="expectedOutput3" placeholder="output" required>
-              </div>
-              <div class="col">
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-primary">Add Test Case</button>
-              </div>
-            </div> 
-          </form>
-          {% endif %}
 
-          <!-- Code Stub -->
-          <h4 class="mb-3">Stub Name: {{ challenge.stub_name }}  {% if session['privileged_mode'] %}<a id = 'edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}</h4>
-          <h4 class="mb-3">Code Stub</h4>
-          {% if session['privileged_mode'] %}
-            <form action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
-          {% else %}
-            <form action="" method="post">
-          {% endif %}
-              
-              <div class="form-group">
-                  <textarea class="form-control" id="codeStub" name="stub-block" rows="5"> {{ challenge.stub_block }}
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">{{ challenge.name }} {% if session['privileged_mode'] %}<a
+                        id="edit_challenge_name" onclick="editChallengeName('{{challenge.id}}')"
+                        class="btn btn-link">Edit</a>{% endif %}</h2>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Difficulty: {{ challenge.difficulty }} {% if session['privileged_mode'] %}<a
+                        id='edit-difficulty' onclick="editDifficultyLevel('{{ challenge.id }}')""  class=" btn
+                        btn-link">Edit</a> {% endif %}</h5>
+                <p class="card-text">Description: {{ challenge.description }} {% if session['privileged_mode'] %}<a
+                        onclick="editChallengeDiscription('{{challenge.id}}')" class="btn btn-link">Edit</a>{% endif %}
+                </p>
+
+                <!-- Challenge Examples -->
+                <ul class="list-group mb-3">
+                    <h4 class="mb-3">Examples</h4>
+                    {% for test in testcases %}
+                    <li class="list-group-item">
+                        <div style="display:inline-block">
+                            <p style="display: inline">{{ challenge.stub_name }}</p>
+                            <p style="display: inline;">(</p>
+                            <p style="display: inline;">{{ test.test_input }}</p>
+                            <p style="display: inline;">)</p>
+                            <p style="display: inline;"> <i class="fas fa-arrow-right"></i></p>
+                            <p style="display: inline;"> {{ test.test_output }}</p>
+                        </div>
+                        {% if session['privileged_mode'] %}
+                        <a id='delete-test-case' name='{{ test.id }}'
+                            onclick="deleteTestCase('{{challenge.id}}','{{test.id}}')"
+                            class="btn btn-danger btn-sm float-right" style="color: white">Delete</a>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Add Test Case -->
+                {% if session['privileged_mode'] %}
+                <h4 class="mb-3">Add Test Case</h4>
+                <form action="{{ url_for('add_test_case', challenge_id=challenge.id) }}" method="post">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="stubLabel" for="stubName">{{ challenge.stub_name }}</label>
+                        </div>
+                        <div class="col">
+                            <input name="inputParameters[]" type="text" class="form-control" id="inputParameters3"
+                                placeholder="input parameters" required>
+                        </div>
+                        <div class="col">
+                            <input name="expectedOutput[]" type="text" class="form-control" id="expectedOutput3"
+                                placeholder="output" required>
+                        </div>
+                        <div class="col">
+                            <button style="margin-bottom: 1vw;" type="submit" class="btn btn-primary">Add Test
+                                Case</button>
+                        </div>
+                    </div>
+                </form>
+                {% endif %}
+
+                <!-- Code Stub -->
+                <h4 class="mb-3">Stub Name: {{ challenge.stub_name }} {% if session['privileged_mode'] %}<a
+                        id='edit-stub-name' onclick="editStubName('{{challenge.id}}')" class="btn btn-link">Edit</a>{%
+                    endif %}</h4>
+                <h4 class="mb-3">Code Stub</h4>
+                {% if session['privileged_mode'] %}
+                <form action="{{ url_for('edit_challenge_stub_block', challenge_id=challenge.id) }}" method="post">
+                    {% else %}
+                    <form action="" method="post">
+                        {% endif %}
+
+                        <div class="form-group">
+                            <textarea class="form-control" id="codeStub" name="stub-block" rows="5"> {{ challenge.stub_block }}
                   </textarea>
-              </div>
-              {% if session['privileged_mode'] %}
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code Stub</button>
-              {% else %}
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Sumit Solution</button>
-              {% endif %}
-          </form>
+                        </div>
+                        {% if session['privileged_mode'] %}
+                        <button style="margin-bottom: 1vw;" type="submit" class="btn btn-success">Update Code
+                            Stub</button>
+                        {% else %}
+                        <button style="margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit
+                            Solution</button>
+                        {% endif %}
+                    </form>
 
-          {% if not session['privileged_mode'] %}
-          <div>
-            <h4 class="mb-3">Submissions</h4>
-            <li class="list-group-item">
-              {% if not submissions %}
-              <p>No submissions yet</p>
-              {% endif%}
-  
-              {% if submissions %}
-                {% for solution in submissions %}
-                <div class="container my-4">
-              
-                      <div class="card-header">
-                          <!-- Display username and the creation date of the comment -->
-                          <strong>{{ challenge.name }}</strong> submitted {{ solution.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
-                      </div>
-                      <div class="card-body">
-                          <!-- Display the title of the comment -->
-                          <h5 class="card-title"> Execution time: {{ solution.exec_time }} seconds</h5>
-                          <h5 class="card-title"> Executed characters: {{ solution.exec_chars }} characters</h5>
-                          <!-- Display the text of the comment -->
-                          <p class="card-text">{{ solution.exec_src }}</p>
-                      </div>
-                      <!-- To allow modertator to delete -->
-                      <div class="card-footer text-end">
-                          <!-- Delete button (you may want to include a confirmation before deletion) -->
-                          {% if session['privileged_mode'] %}
-                            <button class="btn btn-danger btn-sm" >Delete</button>
-                          {% endif %}
-                      </div>
-                  </div>
-    
-                
-              </div>
-              {% endfor %}
-            {% endif%}
-  
-            </li>
-  
-          </div>
-          {% endif %}
-         
-          <div style = "padding: 1vw;">
-            {% if session['userid'] %}
-              <h4 class="mb-3">Add a Comment</h4>
-              <form action="{{ url_for('submit_comment', challenge_id=challenge.id) }}" method="post">
-                <div class="form-group">
-                  <label class = "comment-name" for="comment-name">Title</label>
-                  <input name = "comment-title" type="text" class="form-control" id="comment-title" placeholder="Comment Title" required>
-                  <label  for="comment-content">Comment</label>
-                  <textarea class="form-control" id="comment_content" name="comment-content" rows="5" placeholder="Add your comment here"></textarea>
-                </div> 
-                <button style = "margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Comment</button>
-              </form>
-          {% endif %}
-          <h4 class="mb-3">Comments</h4>
-          <li class="list-group-item">
-            {% if not comments %}
-            <p>No comments yet</p>
+                    {% if session['privileged_mode'] == False %}
+                    <div>
+                        <h4 class="mb-3">Submissions</h4>
+                        <li class="list-group-item">
+                            {% if not submissions %}
+                            <p>No submissions yet</p>
+                            {% endif%}
+
+                            {% if submissions %}
+                            {% for solution in submissions %}
+                            <div class="container my-4">
+
+                                <div class="card-header">
+                                    <!-- Display username and the creation date of the comment -->
+                                    <strong>{{ challenge.name }}</strong> submitted {{
+                                    solution.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                </div>
+                                <div class="card-body">
+                                    <!-- Display the title of the comment -->
+                                    <h5 class="card-title"> Execution time: {{ solution.exec_time }} seconds</h5>
+                                    <h5 class="card-title"> Executed characters: {{ solution.exec_chars }} characters
+                                    </h5>
+                                    <!-- Display the text of the comment -->
+                                    <p class="card-text">{{ solution.exec_src }}</p>
+                                </div>
+                                <!-- To allow modertator to delete -->
+                                <div class="card-footer text-end">
+                                    <!-- Delete button (you may want to include a confirmation before deletion) -->
+                                    {% if session['privileged_mode'] %}
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+
+                    </div>
+                    {% endfor %}
+                    {% endif%}
+
+                    </li>
+
+            </div>
             {% endif %}
 
-            {% if comments %}
-            {% for comment in comments %}
-            <div class="container my-4">
-              <!-- Check if the comment is not marked as deleted -->
-              {% if not comment.is_deleted %}
-              <div class="card">
-                  <div class="card-header">
-                      <!-- Display username and the creation date of the comment -->
-                      <strong>{{ comment.username }}</strong> commented on {{ comment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
-                  </div>
-                  <div class="card-body">
-                      <!-- Display the title of the comment -->
-                      <h5 class="card-title">{{ comment.title }}</h5>
-                      <!-- Display the text of the comment -->
-                      <p class="card-text">{{ comment.text }}</p>
-                  </div>
-                  <!-- To allow modertator to delete -->
-                  <div class="card-footer text-end">
-                      <!-- Delete button (you may want to include a confirmation before deletion) -->
-                      {% if session['privileged_mode'] %}
-                        <button class="btn btn-danger btn-sm" onclick="deleteComment('{{ comment.id}}' , '{{challenge.id}}')">Delete</button>
-                      {% endif %}
-                  </div>
-              </div>
-              {% endif %}
+            <div style="padding: 1vw;">
+                {% if session['userid'] %}
+                <h4 class="mb-3">Add a Comment</h4>
+                <form action="{{ url_for('submit_comment', challenge_id=challenge.id) }}" method="post">
+                    <div class="form-group">
+                        <label class="comment-name" for="comment-name">Title</label>
+                        <input name="comment-title" type="text" class="form-control" id="comment-title"
+                            placeholder="Comment Title" required>
+                        <label for="comment-content">Comment</label>
+                        <textarea class="form-control" id="comment_content" name="comment-content" rows="5"
+                            placeholder="Add your comment here"></textarea>
+                    </div>
+                    <button style="margin-bottom: 1vw;" type="submit" class="btn btn-success">Submit Comment</button>
+                </form>
+                {% endif %}
+                <h4 class="mb-3">Comments</h4>
+                <li class="list-group-item">
+                    {% if not comments %}
+                    <p>No comments yet</p>
+                    {% endif %}
+
+                    {% if comments %}
+                    {% for comment in comments %}
+                    <div class="container my-4">
+                        <!-- Check if the comment is not marked as deleted -->
+                        {% if not comment.is_deleted %}
+                        <div class="card">
+                            <div class="card-header">
+                                <!-- Display username and the creation date of the comment -->
+                                <strong>{{ comment.username }}</strong> commented on {{
+                                comment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                            </div>
+                            <div class="card-body">
+                                <!-- Display the title of the comment -->
+                                <h5 class="card-title">{{ comment.title }}</h5>
+                                <!-- Display the text of the comment -->
+                                <p class="card-text">{{ comment.text }}</p>
+                            </div>
+                            <!-- To allow modertator to delete -->
+                            <div class="card-footer text-end">
+                                <!-- Delete button (you may want to include a confirmation before deletion) -->
+                                {% if session['privileged_mode'] %}
+                                <button class="btn btn-danger btn-sm"
+                                    onclick="deleteComment('{{ comment.id}}' , '{{challenge.id}}')">Delete</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% endif%}
+
+                </li>
             </div>
-          {% endfor %}
-          {% endif%}
-            
-          </li>
+
+
         </div>
-          
-
-      </div>
-  </div>
-
-  <!-- Submissions -->
-  <!-- ... -->
-
-  <!-- Comments -->
-  <!-- ... -->
-</div>
+    </div>
+    </div>
 </body>
 {% include 'footer.html' %}
+
 </html>

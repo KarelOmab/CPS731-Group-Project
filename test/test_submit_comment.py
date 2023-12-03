@@ -39,7 +39,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_single_alpha_empty(self):
@@ -54,7 +54,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_single_numeric_empty(self):
@@ -69,7 +69,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_single_special_empty(self):
@@ -84,7 +84,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_multi_alpha_ascending_empty(self):
@@ -99,7 +99,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_multi_alpha_descending_empty(self):
@@ -114,7 +114,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_multi_alpha_random_empty(self):
@@ -129,7 +129,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_multi_numeric_ascending_empty(self):
@@ -144,7 +144,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_multi_numeric_descending_empty(self):
@@ -159,7 +159,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_multi_numeric_random_empty(self):
@@ -174,7 +174,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count(
                 "Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_multi_special_ascending_empty(self):
@@ -188,7 +188,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_multi_special_descending_empty(self):
@@ -202,7 +202,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_multi_special_random_empty(self):
@@ -216,7 +216,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_single_alpha(self):
@@ -230,7 +230,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_single_numeric(self):
@@ -244,7 +244,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_single_special(self):
@@ -258,7 +258,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_multi_alpha_ascending(self):
@@ -272,7 +272,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_multi_alpha_descending(self):
@@ -286,7 +286,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_multi_alpha_random(self):
@@ -300,7 +300,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_multi_numeric_ascending(self):
@@ -314,7 +314,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_multi_numeric_descending(self):
@@ -328,7 +328,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_multi_numeric_random(self):
@@ -342,7 +342,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_multi_special_ascending(self):
@@ -356,7 +356,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_multi_special_descending(self):
@@ -370,7 +370,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_empty_multi_special_random(self):
@@ -384,7 +384,7 @@ class FlaskTestCase(unittest.TestCase):
             }, follow_redirects=True)
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
-            self.assertNotIn("Posted By:", data)
+            self.assertNotIn("commented on", data)
             self.delete_comments(1)
     
     def test_nonempty_nonempty(self):
@@ -399,7 +399,7 @@ class FlaskTestCase(unittest.TestCase):
             data = response.data.decode('utf-8')
             self.assertEqual(data.count("abcd"), 1)
             self.assertEqual(data.count("efgh"), 1)
-            self.assertEqual(data.count("Posted By:"), 1)
+            self.assertEqual(data.count("commented on"), 1)
             self.assertNotIn("Please provide a title and text for your comment", data)
             self.delete_comments(1)
 
