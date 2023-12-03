@@ -22,8 +22,10 @@ jobs:
         pip install flask mysql-connector-python python-dotenv docker coverage beautifulsoup4
     - name: Login to Docker Hub
       run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-    - name: Pull Docker Image
-      run: docker pull karelomab/safe-python-env:latest
+    - name: Pull and tag Docker Image
+      run: |
+        docker pull karelomab/safe-python-env:latest
+        docker tag karelomab/safe-python-env:latest safe-python-env:latest
     - name: Run tests
       run: |
         coverage run -m unittest discover
