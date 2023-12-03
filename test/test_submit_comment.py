@@ -27,19 +27,11 @@ class FlaskTestCase(unittest.TestCase):
             for submission in submissions:
                 SqlService.purge_challenge_submission_by_id(submission.id)
 
-    def login(self):
-        self.test_client.post('/submit_login', data={
-            "username": "test",
-            "password": "test"
-        })
-
-    def logout(self):
-        # Logout of the session to avoid interfering with other tests
-        self.test_client.get("/logout")
-
     def test_empty_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "",
                 "commentText": ""
@@ -49,11 +41,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_single_alpha_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "a",
                 "commentText": ""
@@ -63,11 +56,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_single_numeric_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "1",
                 "commentText": ""
@@ -77,11 +71,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_single_special_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "@",
                 "commentText": ""
@@ -91,11 +86,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_multi_alpha_ascending_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "ab",
                 "commentText": ""
@@ -105,11 +101,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_multi_alpha_descending_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "ba",
                 "commentText": ""
@@ -119,11 +116,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_multi_alpha_random_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "acb",
                 "commentText": ""
@@ -133,11 +131,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_multi_numeric_ascending_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "12",
                 "commentText": ""
@@ -147,11 +146,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_multi_numeric_descending_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "21",
                 "commentText": ""
@@ -161,11 +161,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_multi_numeric_random_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "132",
                 "commentText": ""
@@ -175,11 +176,12 @@ class FlaskTestCase(unittest.TestCase):
                 "Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_multi_special_ascending_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "!@",
                 "commentText": ""
@@ -188,11 +190,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_multi_special_descending_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "@!",
                 "commentText": ""
@@ -201,11 +204,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_multi_special_random_empty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "!#@",
                 "commentText": ""
@@ -214,11 +218,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_single_alpha(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "",
                 "commentText": "a"
@@ -227,11 +232,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_single_numeric(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "",
                 "commentText": "1"
@@ -240,11 +246,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_single_special(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "",
                 "commentText": "@"
@@ -253,11 +260,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_multi_alpha_ascending(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle": "",
                 "commentText": "ab"
@@ -266,11 +274,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_multi_alpha_descending(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle":"",
                 "commentText": "ba"
@@ -279,11 +288,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_multi_alpha_random(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle":"",
                 "commentText": "acb"
@@ -292,11 +302,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_multi_numeric_ascending(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle":"",
                 "commentText": "12"
@@ -305,11 +316,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_multi_numeric_descending(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle":"",
                 "commentText": "21"
@@ -318,11 +330,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_multi_numeric_random(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle":"",
                 "commentText": "132"
@@ -331,11 +344,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_multi_special_ascending(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle":"",
                 "commentText": "!@"
@@ -344,11 +358,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_multi_special_descending(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle":"",
                 "commentText": "@!"
@@ -357,11 +372,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_empty_multi_special_random(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle":"",
                 "commentText": "!#@"
@@ -370,11 +386,12 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Please provide a title and text for your comment"), 1)
             self.assertNotIn("Posted By:", data)
             self.delete_comments(1)
-            self.logout()
     
     def test_nonempty_nonempty(self):
-        with self.test_client:
-            self.login()
+        with self.test_client.session_transaction() as session:
+            session["username"]= "test"
+            session["password"]= "test"
+            session["privileged_mode"] = False
             response = self.test_client.post('/submit_comment/1', data={
                 "commentTitle":"abcd",
                 "commentText": "efgh"
@@ -385,7 +402,6 @@ class FlaskTestCase(unittest.TestCase):
             self.assertEqual(data.count("Posted By:"), 1)
             self.assertNotIn("Please provide a title and text for your comment", data)
             self.delete_comments(1)
-            self.logout()
 
 if __name__ == '__main__':
     unittest.main()
