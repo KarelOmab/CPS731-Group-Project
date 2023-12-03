@@ -1,4 +1,3 @@
-import os
 from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify, abort
 from flask import request, redirect, url_for
 from dotenv import load_dotenv
