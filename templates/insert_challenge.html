@@ -33,13 +33,11 @@
         });
 
         //This might be removed at the end, it only for testing purpose
-        function remove_added_test_case()
-        {
+        function remove_added_test_case() {
          
           var remove_div = document.getElementById('form-row-div');
           remove_div.remove();
         }
-
 
         document.addEventListener('DOMContentLoaded', (event) => {
         var inputArea = document.getElementById("stubBlock");
@@ -60,13 +58,7 @@
 
       function addTestCase() 
       {
-
           var testCasesDiv = document.getElementById('testCases');
-          //<button class="btn btn-danger btn-sm float-right  style=color:white">Delete</button>
-          //This is for naming consistency
-          //name = "inputParameters[]"
-          //name = "expectedOutput[]"
-
           var all_remove_buttons = document.getElementsByName('remove_button[]');
           var i = 1;
 
@@ -85,7 +77,6 @@
           console.log(existing_labels);
           // Create the wrapper div for the new test case input group
           var newTestCase = document.createElement('div');
-          
 
           newTestCase.setAttribute('class', 'form-row');
           newTestCase.setAttribute('id', 'form-row-div');
@@ -94,7 +85,6 @@
           var labelDiv = document.createElement('div');
           labelDiv.setAttribute('class', 'form-group');
           labelDiv.setAttribute('id', 'test-case-stub-name');
-          
 
           var label = document.createElement('label');
           label.setAttribute('for', 'inputParameters'); // 'for' should match the 'id' of the input it is associated with
@@ -130,14 +120,11 @@
           outputInput.setAttribute('name', 'expectedOutput[]');
 
           outDiv.appendChild(outputInput);
-
           
           var remove_button_div = document.createElement('div');
-          
           remove_button_div.setAttribute('class', 'col');
 
           var remove_button = document.createElement('button');
-
           remove_button.setAttribute('class', 'btn btn-danger btn-sm ');
           remove_button.setAttribute('name','remove_button[]')
           remove_button.textContent= "Remove";
@@ -145,10 +132,6 @@
           //This will remove the added test case
           remove_button.onclick = function(){ newTestCase.remove()};
           
-          //remove_button.setAttribute('onclick', 'remove_added_test_case()');
-          
-          
-
           remove_button_div.appendChild(remove_button);
 
           // Append the label and inputs to the wrapper div
@@ -160,8 +143,6 @@
           // Append the new test case to the test cases container
           testCasesDiv.appendChild(newTestCase);
       }
-
-        
     </script>
 </head>
 <body class="d-flex flex-column h-100">
