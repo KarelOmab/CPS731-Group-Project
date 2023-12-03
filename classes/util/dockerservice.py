@@ -128,7 +128,7 @@ print_outputs = []
                         result_dict['tests_passed'] += 1
                 except docker.errors.ContainerError as ce:
                     error_message = ce.stderr.decode()
-                    print("error_message", error_message)
+                    #print("error_message", error_message)
 
                     # Using regex to find the specific error message
                     match = re.search(r"(\w+Error): ([^\n]+)", error_message)

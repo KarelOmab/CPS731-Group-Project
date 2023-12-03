@@ -22,7 +22,7 @@ class App:
         self.app.add_url_rule('/logout', 'logout', self.logout)
         self.app.add_url_rule('/login', 'login', self.login)
         self.app.add_url_rule('/submit_login', 'submit_login', self.submit_login, methods=['POST'])
-        self.app.add_url_rule('/challenges', 'challenges', self.challenges) # I added the methods=['POST']
+        self.app.add_url_rule('/challenges', 'challenges', self.challenges)
         self.app.add_url_rule('/sort_challenges/<sorting_criteria>', 'sort_challenges', self.sort_challenges, methods=['POST'])
         self.app.add_url_rule('/insert_challenge', 'insert_challenge', self.insert_challenge)
         self.app.add_url_rule('/submit_challenge', 'submit_challenge', self.submit_challenge, methods=['POST'])
@@ -106,7 +106,7 @@ class App:
                     return render_template('register.html', error_message='Email already in use'), 400
             except Exception as e:
             # Handle other exceptions (e.g., database connection issues)
-                render_template('register.html', error_message='An error occured while registering - please try again later'), 500
+                return render_template('register.html', error_message='An error occurred while registering - please try again later'), 500
         return redirect(url_for('register')), 403  # 403 Forbidden
             
     def submit_login(self):
@@ -198,8 +198,6 @@ class App:
         """
         session['sorting_criteria'] = sorting_criteria
         return redirect(url_for('challenges'))
-       
-        
     
     def challenges(self):
         """
@@ -289,53 +287,19 @@ class App:
                 for input_case, output_case in zip(input_test_cases,output_test_cases):
                     last_id_inserted = SqlService.insert_challenge_test(last_id[0]['LAST_INSERT_ID()'],input_case,output_case)
             
-
                 if last_id != None:
                     challenges = SqlService.get_all_challenges()
 
         except RuntimeError as err:
             print(f"Error! {err}")
 
-        return redirect(url_for('challenges')) 
+        return redirect(url_for('challenges'))
     
 
     def submission(self, challenge_id):
-        """
-        Process the submission of user code for a specific challenge.
-
-        This method is responsible for handling the POST request when a user submits their code solution
-        for a challenge. It checks for the validity of the request method, retrieves the submitted code
-        from the form, fetches the associated challenge and its test cases from the database, and validates
-        the user's code stub.
-
-        If the challenge or tests do not exist, it aborts the request with a 404 status code or returns a
-        501 status code with an appropriate message, respectively. It then validates the user code stub
-        with the DockerService. If the validation fails, it returns a 400 status code with the validation
-        message.
-
-        Assuming validation passes, the DockerService is used to execute the user code against the challenge
-        test cases. The execution results are then assessed to determine whether the user's solution passed
-        all test cases.
-
-        If the user's code passes all test cases, an attempt is made to insert the submission details into
-        the database. A JSON response is returned to the user indicating success or failure of this operation,
-        along with the execution time and character count.
-
-        If the user's code fails any test case, or if an error, timeout, or exception occurs during code
-        execution, a JSON response with the corresponding status code and details about the failure is returned.
-
-        Parameters:
-            challenge_id (int): The ID of the challenge for which the code is being submitted.
-
-        Returns:
-            A JSON response containing the result of the submission attempt, along with appropriate HTTP status
-            codes. This response includes success messages, execution details, and error messages as applicable.
-        """
-
         
-
         if request.method != 'POST':
-            abort(404)
+            abort(405)
 
         user_code = request.form.get('stub-block')
   
