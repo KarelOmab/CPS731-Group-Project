@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
 class Account(ABC):
     def __init__(self, id: int, username: str):
@@ -16,10 +16,9 @@ class Account(ABC):
         return self._username
     
     @property
-    @abstractmethod
     def privileged_mode(self) -> bool:
-        """Abstract getter to be implemented for determining if the account is in privileged mode."""
-        pass
+        """Indicates that a moderator has privileged mode enabled."""
+        return self._privileged_mode
     
     def __str__(self) -> str:
         return f"id:{self.id}, username:{self.username}, privileged_mode:{self.privileged_mode}"
