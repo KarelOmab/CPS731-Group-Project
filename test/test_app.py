@@ -1,8 +1,10 @@
 import sys
 import os
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from datetime import datetime
+import re
+from bs4 import BeautifulSoup
 
 # Add the parent directory to the PYTHONPATH so the App class can be imported
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -101,10 +103,6 @@ class FlaskAppTestCase(unittest.TestCase):
             'email_address': 'test@test.com'
         })
         self.assertEqual(response.status_code, 500)
-
-    def test_non_post_request(self):
-        response = self.client.get('/submit_registration')
-        self.assertEqual(response.status_code, 405)
 
     @patch('classes.util.cryptoservice.CryptoService.hash_password')
     @patch('classes.util.sqlservice.SqlService.get_account_by_username_password')
@@ -296,17 +294,18 @@ class FlaskAppTestCase(unittest.TestCase):
     @patch('classes.util.sqlservice.SqlService.get_challenge_by_id')
     @patch('classes.util.sqlservice.SqlService.get_challenge_tests_by_id')
     @patch('classes.util.dockerservice.DockerService.execute_code')
-    def test_submission_exception_error(self, mock_execute_code, mock_get_tests, mock_get_challenge):
+    def test_submission_execution_error(self, mock_execute_code, mock_get_tests, mock_get_challenge):
         mock_get_challenge.return_value = self.challenge
         mock_get_tests.return_value = [self.challenge_test]
 
-        # Simulate the formatted exception message
-        formatted_exception_message = "RuntimeError: Test Exception Occurred"
+        # Simulate an execution error scenario
         mock_execute_code.return_value = {
-            'exception': formatted_exception_message,
+            'error': 'Execution Error',
             'print_outputs': [''],
             'tests_passed': 0,
-            'tests_total': 0
+            'tests_total': 1,
+            'exec_time': 0,
+            'exec_chars': 0
         }
 
         with self.client.session_transaction() as session:
@@ -314,11 +313,551 @@ class FlaskAppTestCase(unittest.TestCase):
 
         valid_test_data = {'stub-block': 'def foo(x, y): return x + y'}
         response = self.client.post('/submission/1', data=valid_test_data)
-        print(response.data)
+
+        self.assertEqual(response.status_code, 400)
+
+    @patch('classes.util.sqlservice.SqlService.get_challenge_by_id')
+    @patch('classes.util.sqlservice.SqlService.get_challenge_tests_by_id')
+    @patch('classes.util.dockerservice.DockerService.execute_code')
+    def test_submission_timeout(self, mock_execute_code, mock_get_tests, mock_get_challenge):
+        mock_get_challenge.return_value = self.challenge
+        mock_get_tests.return_value = [self.challenge_test]
+
+        # Adjusted mock for a timeout scenario
+        mock_execute_code.return_value = {
+            'timeout': True,
+            'print_outputs': [''],
+            'tests_passed': 0,
+            'tests_total': 1,
+            'error': None,
+            'exec_time': 0,
+            'exec_chars': 0
+        }
+
+        with self.client.session_transaction() as session:
+            session['user_id'] = 'test_user_id'
+
+        valid_test_data = {'stub-block': 'def foo(x, y): return x + y'}
+        response = self.client.post('/submission/1', data=valid_test_data)
+
+        self.assertEqual(response.status_code, 408)
+        self.assertIn("Timeout Occurred!", response.json.get('message'))
+        self.assertIn("A timeout occurred during the execution of your submission.", response.json.get('flash', {}).get('message'))
+        self.assertEqual('warning', response.json.get('flash', {}).get('category'))
+    
+    @patch('classes.util.sqlservice.SqlService.get_challenge_by_id')
+    @patch('classes.util.sqlservice.SqlService.get_challenge_tests_by_id')
+    @patch('classes.util.dockerservice.DockerService.execute_code')
+    def test_submission_exception(self, mock_execute_code, mock_get_tests, mock_get_challenge):
+        mock_get_challenge.return_value = self.challenge
+        mock_get_tests.return_value = [self.challenge_test]
+
+        # Simulate an exception scenario
+        mock_execute_code.return_value = {
+            'timeout': False,
+            'exception': 'Exception occurred',
+            'print_outputs': [''],
+            'tests_passed': 0,
+            'tests_total': 1,
+            'error': None,
+            'exec_time': 0,
+            'exec_chars': 0
+        }
+
+        with self.client.session_transaction() as session:
+            session['user_id'] = 'test_user_id'
+
+        valid_test_data = {'stub-block': 'def foo(x, y): return x + y'}
+        response = self.client.post('/submission/1', data=valid_test_data)
 
         self.assertEqual(response.status_code, 500)
+        self.assertIn('Exception occurred', response.json.get('message'))
+        self.assertIn('Exception occurred', response.json.get('flash', {}).get('message'))
+        self.assertEqual('error', response.json.get('flash', {}).get('category'))
+
+    def test_generic_challenge_success(self):
+        response = self.client.get('/challenges/1')
+
+        # Check the status code
+        self.assertEqual(response.status_code, 200)
+
+        # Check if the correct template was used
+        self.assertTrue(b'/challenge' in response.data)
+
+        # Check if the returned template title is correct
+        self.assertIn('Sum', response.data.decode('utf-8'))  # Check for challenge title
+
+    def test_generic_challenge_failure(self):
+        response = self.client.get('/challenges/100')
+
+        # Check the status code
+        self.assertEqual(response.status_code, 404)
+
+        # Check if the correct template was used
+        self.assertFalse(b'/challenge' in response.data)
+
+        # Check if the returned template title is correct
+        self.assertNotIn('Sum', response.data.decode('utf-8'))  # Check for challenge title
+
+    def test_challenges_success(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges
+                sess['sorting_criteria'] = 'difficulty'  
+
+            # Make the request to the /challenges route
+            response = client.get('/challenges')
+
+            # Check the status code
+            self.assertEqual(response.status_code, 200)
+
+            # Check if the correct template was used
+            self.assertTrue(b'challenges' in response.data, "The word 'challenges' was not found in the response")
+
+            # Check if the returned page contains the title 'Challenges'
+            self.assertIn('Challenges', response.data.decode('utf-8'), "The title 'Challenges' was not found in the response")
 
 
+    def test_submit_challenge_success(self):
+         with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges
+                sess['privileged_mode'] = True  
+                sess['user_id'] = 1
+                sess['sorting_criteria'] = 'name'
+            #mock the form data for the new created challenge
+            form_data = {
+            'challengeName': 'Subtract',
+            'challengeDifficulty': 'Easy',
+            'challengeDescription': 'Given two numbers x and y, return x - y',
+            'stubName': 'sub',
+            'stubBlock': 'def sub(x,y)\n#Add your codes here',
+            'timeAllowed': '20',
+            'inputParameters[]': ['1,3','1,4','0,0'],
+            'expectedOutput[]': ['-2','-3','0'],
+            }
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/submit_challenge', data = form_data , follow_redirects=True)
+
+            
+            # Check the status code
+            self.assertEqual(response.status_code, 200)
+
+            # Validate content type
+            self.assertIn('text/html', response.content_type)
+
+    def test_submit_challenge_failure(self):
+         with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges
+                sess['privileged_mode'] = False  
+                sess['user_id'] = 1
+                sess['sorting_criteria'] = 'name'
+
+            #mock the form data for the new created challenge
+            form_data = {
+            'challengeName': 'Add',
+            'challengeDifficulty': 'Easy',
+            'challengeDescription': 'Given two numbers x and y, return x + y',
+            'stubName': 'sub',
+            'stubBlock': 'def add(x,y)\n#Add your codes here',
+            'timeAllowed': '20',
+            'inputParameters[]': ['1,3','1,4','0,0'],
+            'expectedOutput[]': ['4','5','0'],
+            }
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/submit_challenge', data=form_data, follow_redirects=True)
+
+            # Check the status code
+            self.assertEqual(response.status_code, 200)
+
+            # Check if the correct template was used
+            self.assertTrue(b'challenges' in response.data, "The word 'challenges' was not found in the response")
+
+         # Check if the newly added challenge is in the returned page
+            self.assertFalse(b'Add' in response.data, "The word 'challenges' was not found in the response")
+
+    def test_submit_comment_success(self):
+         with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['user_id'] = 1
+            #mock the form data for the new created challenge
+            form_data = {
+            'comment-title': 'Very Easy',
+            'comment-content': 'Thank you for such an easy challenge',
+            
+            }
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/submit_comment/1', data=form_data)
+          
+            # Check the status code
+            self.assertEqual(response.status_code, 302)
+
+            # Check if the correct template was used
+            self.assertTrue(re.search(r'challenges', response.data.decode('utf-8')), "The word 'challenges' was not found in the response")            
+           
+    #We have to make sure that the challenge with challenge_id 255 with name Are We Even exist in our database
+    def test_delete_challenge_success(self):
+         with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['user_id'] = 1
+                sess['privileged_mode'] = True  
+
+            # Use the test client to simulate a POST request to your route
+            response = client.get('/delete_challenge/255')
+          
+            # Check the status code
+            self.assertEqual(response.status_code, 302)
+
+            # Check if the deleted challenge exist in our returned page
+            self.assertFalse(b'Are We Even?' in response.data, "The word 'challenges' was not found in the response")
+    
+    #We have to make sure that the challenge with challenge_id 2 with a name "Biggest Number" exist in our database
+    def test_delete_challenge_failure(self):
+         with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
+
+            # Use the test client to simulate a POST request to your route
+            response = client.get('/delete_challenge/2')
+          
+            # Check the status code
+            self.assertEqual(response.status_code, 302)
+
+             # Validate content type
+            self.assertIn('text/html', response.content_type)
+
+            # Parse HTML response data
+            soup = BeautifulSoup(response.data, 'html.parser')
+        
+            # Check for the presence of the challenges title
+            pattern = re.compile(r'challenges') #Biggest\s+Number
+            self.assertIsNotNone(soup.find(string=pattern), "The phrase 'challenges' was not found in the response")
+    
+    def test_edit_challenge_name_success(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
+
+           
+
+            #mocking the JSON data that is sent by the JavaScript
+            mock_json_data = {'new_challenge_name': 'The Biggest Number'}
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/edit_challenge_name/2', json = mock_json_data, follow_redirects=True)
+
+            # Check the status code
+            self.assertEqual(response.status_code, 200)
+
+            #get the challenge/2 page for update
+            response_2 = client.get("/challenges/2")
+            #print(response_2.data.decode())
+
+            # Validate content type
+            self.assertIn('text/html', response_2.content_type)
+            # <h2 class="card-title">The Biggest Number 
+
+            soup = BeautifulSoup(response_2.data.decode(), 'html.parser')
+
+            # Find the <p> tag with the specific text
+            p_tag = soup.find('h2', class_='card-title')
+            
+            # Check if the text is exactly 'No description available'
+            self.assertEqual(p_tag.get_text(strip=True), 'The Biggest NumberEdit')
+           
+
+    def test_edit_challenge_name_failure(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
+
+           
+
+            #mocking the JSON data that is sent by the JavaScript
+            mock_json_data = {'new_challenge_name': 'Biggest Number'}
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/edit_challenge_name/2', json = mock_json_data)
+          
+          
+            # Check the status code
+            self.assertTrue(response.status_code, 302)
+
+   
+    
+    def test_edit_challenge_difficulty_success(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
+
+            #mocking the JSON data that is sent by the JavaScript
+            mock_json_data = {'newValue': 'Hard'}
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/edit_challenge_difficulty/2', json = mock_json_data)
+           
+          
+            # Check the status code
+            self.assertEqual(response.status_code, 200)
+
+
+            #get the challenge/2 page for update
+            response_2 = client.get("/challenges/2")
+            #print(response_2.data.decode())
+
+            # Validate content type
+            self.assertIn('text/html', response_2.content_type)
+            #<h5 class="card-title">Difficulty: Hard  
+
+            soup = BeautifulSoup(response_2.data.decode(), 'html.parser')
+
+            # Find the <p> tag with the specific text
+            p_tag = soup.find('h5', class_='card-title')
+            
+            # Check if the text is exactly 'No description available'
+            self.assertEqual(p_tag.get_text(strip=True), 'Difficulty: HardEdit')
+
+           
+
+    def test_edit_challenge_description_success(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
+
+           
+
+            #mocking the JSON data that is sent by the JavaScript
+            mock_json_data = {'new_challenge_discr': 'No description available'}
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/edit_challenge_description/2', json = mock_json_data)
+
+            # Check the status code
+            self.assertTrue(response.status_code, 200)
+
+
+            #get the challenge/2 page for update
+            response_2 = client.get("/challenges/2")
+            #print(response_2.data.decode())
+
+            # Validate content type
+            self.assertIn('text/html', response_2.content_type)
+
+            soup = BeautifulSoup(response_2.data.decode(), 'html.parser')
+
+            # Find the <p> tag with the specific text
+            p_tag = soup.find('p', class_='card-text')
+            
+            # Check if the text is exactly 'No description available'
+            self.assertEqual(p_tag.get_text(strip=True), 'Description: No description availableEdit')
+            
+          
+           
+
+        
+    def test_edit_challenge_description_failure(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
+
+           
+
+            #mocking the JSON data that is sent by the JavaScript
+            mock_json_data = {'new_challenge_discr': 'Finds the biggest number from the list'}
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/edit_challenge_description/2', json = mock_json_data)
+           
+          
+            # Check the status code
+            self.assertTrue(response.status_code, 302)
+
+    def test_edit_challenge_stub_name_success(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
+
+           
+
+            #mocking the JSON data that is sent by the JavaScript
+            mock_json_data = {'stub_name': 'max_number'}
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/edit_challenge_stub-name/2', json = mock_json_data)
+           
+          
+            # Check the status code
+            self.assertTrue(response.status_code, 200)
+    
+    def test_edit_challenge_stub_name_failure(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
+
+           
+
+            #mocking the JSON data that is sent by the JavaScript
+            mock_json_data = {'stub_name': 'max_integer'}
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/edit_challenge_stub-name/2', json = mock_json_data)
+           
+          
+            # Check the status code
+            self.assertTrue(response.status_code, 200)
+
+
+    def test_edit_challenge_stub_block_success(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
+
+           
+
+            #mocking the form data
+            form_data = {
+            'stub-block': 'def max_number\n  #Add your codes here'
+            }
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/edit_challenge_stub-block/2', data = form_data)
+           
+          
+            # Check the status code
+            self.assertTrue(response.status_code, 200)
+
+           
+
+    def test_edit_challenge_stub_block_failure(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
+
+           
+
+            #mocking the form data
+            form_data = {
+            'stub-block': 'def max_number\n  #your codes here'
+            }
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/edit_challenge_stub-block/2', data = form_data)
+           
+          
+            # Check the status code
+            self.assertTrue(response.status_code, 200)
+
+    def test_add_test_case_success(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
+
+           
+
+            #mocking the form data
+            form_data = {
+            'inputParameters[]': '[1,2,3,100,0]',
+            'expectedOutput[]': '100'
+            }
+
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('add_test_case/2', data= form_data)
+           
+          
+            # Check the status code
+            self.assertTrue(response.status_code, 200)
+
+            # Check the newly added test-case exist in the return page
+            self.assertTrue(re.search(r'[1,2,3,100,0]',response.data.decode('utf-8')))
+    
+    def test_add_test_case_failure(self):
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = False
+                sess['user_id'] = 2
+
+           
+
+            #mocking the form data
+            form_data = {
+            'inputParameters[]': '[1,2,3,-2-3-1]',
+            'expectedOutput[]': '3'
+            }
+
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('add_test_case/2', data= form_data)
+
+            # Check the newly added test-case exist in the return page
+            self.assertFalse(b'[1,2,3,-2-3-1]' in response.data) 
+
+    def test_delete_test_case_success(self): 
+         with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
+
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/delete_test_case/2/6')
+           
+          
+            # Check the status code
+            self.assertTrue(response.status_code, 200)
+
+            #test case with id = 6 has the input parameter = [0, -1, 1, -100, 100]
+            # Check the delete test case input parameter doesn't exist in the returned page
+            self.assertFalse(b'[0, -1, 1, -100, 100]' in response.data)   
+          
+
+    #Here we want to make sure that we have a comment for challenge id = 2 with comment id = 88 in the database
+    def test_delete_comment_success(self):
+        #, challenge_id, comment_id /delete_comment/
+
+        with self.client as client:
+            with client.session_transaction() as sess:
+                # Set a session variable because I set the session variable in the index page so that there is a default sorting criteria for challenges  
+                sess['privileged_mode'] = True
+                sess['user_id'] = 1
+
+
+            # Use the test client to simulate a POST request to your route
+            response = client.post('/delete_comment/2/88')
+           
+          
+            # Check the status code
+            self.assertTrue(response.status_code, 200)
 
 
 

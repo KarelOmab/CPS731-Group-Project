@@ -7,7 +7,8 @@ dependencies = [
     "mysql-connector-python",
     "python-dotenv",
     "docker",
-    "coverage"
+    "coverage",         #for testing
+    "beautifulsoup4"    #for testing
 ]
 
 def install(package):
