@@ -82,7 +82,7 @@ class FlaskTestCase(unittest.TestCase):
         self.assertEqual(data.count("No comments yet"), 1)
 
     def test_one_submission_logged_in(self):
-        SqlService.insert_challenge_submission(1, 2, 1.0, len(
+        SqlService.insert_challenge_submission(1, 2, 2.0, len(
             "123456789012345678901234567890123456789012345678901234567890"), "123456789012345678901234567890123456789012345678901234567890")
         with self.test_client.session_transaction() as session:
             session["user_id"]= 2
@@ -93,26 +93,26 @@ class FlaskTestCase(unittest.TestCase):
         self.assertEqual(data.count("submitted"), 1)
         self.assertEqual(data.count("Execution time:"), 1)
         self.assertEqual(data.count("Executed characters:"), 1)
-        self.assertEqual(data.count("1.0"), 1)
+        self.assertEqual(data.count("2.0"), 1)
         self.assertEqual(data.count("60"), 1)
         self.delete_submissions(1, 2)
 
     def test_multiple_submissions_logged_in(self):
-        SqlService.insert_challenge_submission(1, 2, 1.0, len(
+        SqlService.insert_challenge_submission(1, 2, 2.0, len(
             "123456789012345678901234567890123456789012345678901234567890"), "123456789012345678901234567890123456789012345678901234567890")
         SqlService.insert_challenge_submission(
-            1, 2, 2.0, len("1234567890123456789012345678901234567890123456789012345678901234567890"), "1234567890123456789012345678901234567890123456789012345678901234567890")
+            1, 2, 3.0, len("1234567890123456789012345678901234567890123456789012345678901234567890"), "1234567890123456789012345678901234567890123456789012345678901234567890")
         with self.test_client.session_transaction() as session:
             session["user_id"]= 2
             session["username"]= "test"
             session["privileged_mode"] = False
         response = self.test_client.get('/challenges/1')
         data = response.data.decode('utf-8')
-        self.assertEqual(data.count("submitted"), 1)
-        self.assertEqual(data.count("Execution time:"), 1)
-        self.assertEqual(data.count("Executed characters:"), 1)
-        self.assertEqual(data.count("1.0"), 1)
+        self.assertEqual(data.count("submitted"), 2)
+        self.assertEqual(data.count("Execution time:"), 2)
+        self.assertEqual(data.count("Executed characters:"), 2)
         self.assertEqual(data.count("2.0"), 1)
+        self.assertEqual(data.count("3.0"), 1)
         self.assertEqual(data.count("60"), 1)
         self.assertEqual(data.count("70"), 1)
         self.delete_submissions(1, 2)
