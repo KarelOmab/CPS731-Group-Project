@@ -12,11 +12,18 @@ from classes.challenge.challengesubmission import ChallengeSubmission
 load_dotenv()
 
 class SqlService:
+    _instance = None
+
     # Database configuration as class variables
     HOST = os.getenv("MYSQL_HOST", "localhost")
     USER = os.getenv("MYSQL_USER", "root")
     PASSWORD = os.getenv("MYSQL_PASSWORD", "")
     DATABASE = os.getenv("MYSQL_DB", "CodeChamp-mockup")
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(SqlService, cls).__new__(cls)
+        return cls._instance
 
     @staticmethod
     def create_connection():
