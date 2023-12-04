@@ -1,4 +1,12 @@
 import unittest
+import sys
+import os
+
+# Add the parent directory to the PYTHONPATH so the App class can be imported
+current_dir = os.path.dirname(os.path.realpath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
 from classes.util.sqlservice import SqlService
 
 class TestSqlService(unittest.TestCase):
@@ -286,6 +294,7 @@ class TestSqlService(unittest.TestCase):
 
         # Call the method
         comment_id = SqlService.insert_challenge_comment(account_id, challenge_id, title, text)
+        print(comment_id)
 
         # Assert that an ID was returned (indicating successful insertion)
         self.assertIsNone(comment_id)
@@ -824,7 +833,7 @@ class TestSqlService(unittest.TestCase):
     def test_delete_challenge_comment_by_id_and_challenge_id_success(self):
         # note we dont actually delete challenge comments but simply flag their is_deleted to 1 or 0
         # Define test data
-        comment_id = 1
+        comment_id = 164
         IS_DELETED = 1
 
         # Fetch the original challenge comment

@@ -1,5 +1,14 @@
 import unittest
 from datetime import datetime
+
+import sys
+import os
+
+# Add the parent directory to the PYTHONPATH so the App class can be imported
+current_dir = os.path.dirname(os.path.realpath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
 from classes.util.dockerservice import DockerService
 from classes.challenge.challenge import Challenge
 from classes.challenge.challengetest import ChallengeTest

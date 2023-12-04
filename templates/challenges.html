@@ -14,7 +14,6 @@
     <script>
       function sortChallenges(sort_criteria)
         {
-         
           $.ajax({
             url: '/sort_challenges/'+sort_criteria,
             method: 'POST',
@@ -47,7 +46,6 @@
         <button id="sort-difficulty" class="btn btn-primary" onclick = "sortChallenges('difficulty')" >Sort Challenges by Difficulty</button>
       </div>
       
-      
       <ul class="list-group">
         {% if session['privileged_mode'] %}
         <li class="list-group-item">
@@ -65,11 +63,7 @@
               {% endif %}
             </li>
         {% endfor %}
-        
-        
-        
       </ul>
-      
     </div>
 </body>
 {% include 'footer.html' %}
